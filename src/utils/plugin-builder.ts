@@ -43,7 +43,7 @@ export class PluginBuilder<T = any> {
    * 의존성 추가
    */
   dependsOn(...dependencies: string[]): PluginBuilder<T> {
-    this.options.dependencies = [...(this.options.dependencies || []), ...dependencies];
+    this.options.dependencies = [...(this.options.dependencies ?? []), ...dependencies];
     return this;
   }
 
@@ -394,7 +394,7 @@ export namespace DecorationBuilders {
       const decorations: Array<{ type: 'highlight'; from: Date; spec: Record<string, unknown> }> = [];
       
       // 예시: 현재 월의 모든 날짜 체크 (실제 구현에서는 달력에서 날짜 목록을 가져와야 함)
-      const currentDate = _state.currentDate || new Date();
+      const currentDate = _state.currentDate ?? new Date();
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       const daysInMonth = new Date(year, month + 1, 0).getDate();

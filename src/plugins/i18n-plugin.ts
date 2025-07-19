@@ -84,13 +84,14 @@ class I18nPluginState extends PluginState<I18nState> {
     const newValue = { ...this.value };
 
     switch (transaction.type) {
-      case 'I18N_CHANGE_LOCALE':
+      case 'I18N_CHANGE_LOCALE': {
         const newLocale = transaction.payload.locale;
         newValue.locale = newLocale;
         newValue.rtl = this.isRTLLocale(newLocale);
         newValue.messages = this.loadMessages(newLocale);
         newValue.formatters.clear(); // 캐시 무효화
         break;
+      }
 
       case 'I18N_CHANGE_TIMEZONE':
         newValue.timeZone = transaction.payload.timeZone;
@@ -386,7 +387,7 @@ export class DateTimeFormatter {
 export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
   // 기본 로케일 감지
   const defaultLocale = typeof navigator !== 'undefined' 
-    ? navigator.language || 'en-US'
+    ? navigator.language ?? 'en-US'
     : 'en-US';
     
   const defaultTimeZone = typeof Intl !== 'undefined'
@@ -523,22 +524,22 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
     queries: {
       getLocale: (state, plugin) => {
         const i18nState = plugin.getState(state);
-        return i18nState?.value.locale || 'en-US';
+        return i18nState?.value.locale ?? 'en-US';
       },
 
       getTimeZone: (state, plugin) => {
         const i18nState = plugin.getState(state);
-        return i18nState?.value.timeZone || 'UTC';
+        return i18nState?.value.timeZone ?? 'UTC';
       },
 
       isRTL: (state, plugin) => {
         const i18nState = plugin.getState(state);
-        return i18nState?.value.rtl || false;
+        return i18nState?.value.rtl ?? false;
       },
 
       getFirstDayOfWeek: (state, plugin) => {
         const i18nState = plugin.getState(state);
-        return i18nState?.value.firstDayOfWeek || 0;
+        return i18nState?.value.firstDayOfWeek ?? 0;
       },
 
       getMessages: (state, plugin) => {
@@ -555,7 +556,7 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
           i18nState.value.timeZone
         );
         
-        return formatter.format(date, options || i18nState.value.dateFormat);
+        return formatter.format(date, options ?? i18nState.value.dateFormat);
       },
 
       formatTime: (state, plugin, date: Date) => {
@@ -684,7 +685,7 @@ export const I18nUtils = {
    */
   detectLocale(): string {
     if (typeof navigator !== 'undefined') {
-      return navigator.language || navigator.languages?.[0] || 'en-US';
+      return navigator.language ?? navigator.languages?.[0] ?? 'en-US';
     }
     return 'en-US';
   },

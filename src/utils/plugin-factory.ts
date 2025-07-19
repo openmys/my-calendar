@@ -226,8 +226,8 @@ export namespace PluginTemplates {
     return createCustomPlugin({
       key: options.key,
       initialState: {
-        highlightDates: options.highlightDates || [],
-        highlightClass: options.highlightClass || 'highlight-date'
+        highlightDates: options.highlightDates ?? [],
+        highlightClass: options.highlightClass ?? 'highlight-date'
       },
       stateHandlers: {
         'ADD_HIGHLIGHT_DATE': (state, payload) => ({
@@ -297,7 +297,7 @@ export namespace PluginTemplates {
       stateHandlers: {
         'INCREMENT_DATE_CLICK': (state, payload) => {
           const dateKey = payload.date.toISOString().split('T')[0];
-          const currentCount = (state as any).clickCounts.get(dateKey) || 0;
+          const currentCount = (state as any).clickCounts.get(dateKey) ?? 0;
           const newCounts = new Map<string, number>((state as any).clickCounts);
           newCounts.set(dateKey, currentCount + 1);
           
@@ -328,7 +328,7 @@ export namespace PluginTemplates {
         getClickCount: (date: Date) => (state) => {
           // 조회 전용 커맨드 (실제로는 query로 구현하는 것이 좋음)
           const dateKey = date.toISOString().split('T')[0];
-          return ((state as any).clickCounts?.get(dateKey) || 0);
+          return ((state as any).clickCounts?.get(dateKey) ?? 0);
         }
       }
     });
@@ -346,9 +346,9 @@ export namespace PluginTemplates {
     return createCustomPlugin({
       key: options.key,
       initialState: {
-        disabledDates: options.disabledDates || [],
-        disableWeekends: options.disableWeekends || false,
-        disablePastDates: options.disablePastDates || false
+        disabledDates: options.disabledDates ?? [],
+        disableWeekends: options.disableWeekends ?? false,
+        disablePastDates: options.disablePastDates ?? false
       },
       stateHandlers: {
         'ADD_DISABLED_DATE': (state, payload) => ({
@@ -484,10 +484,10 @@ export namespace PluginHelpers {
       [key]: [...(Array.isArray(state[key]) ? state[key] : []), item]
     }),
     removeFromArray: (key: string, predicate: (item: unknown) => boolean) => (state: Record<string, unknown>) => ({
-      [key]: (state[key] as unknown[] || []).filter((item: unknown) => !predicate(item))
+      [key]: (state[key] as unknown[] ?? []).filter((item: unknown) => !predicate(item))
     }),
     updateObject: (key: string) => (state: Record<string, unknown>, updates: Record<string, unknown>) => ({
-      [key]: { ...(state[key] || {}), ...updates }
+      [key]: { ...(state[key] ?? {}), ...updates }
     })
   };
 

@@ -63,7 +63,7 @@ class RangePluginState extends PluginState<RangeState> {
         newValue.selectionStart = null;
         break;
 
-      case 'RANGE_SELECT_RANGE':
+      case 'RANGE_SELECT_RANGE': {
         const { start, end } = transaction.payload;
         if (this.isValidRange(start, end, newValue.options)) {
           newValue.selectedRange = { start, end };
@@ -71,8 +71,9 @@ class RangePluginState extends PluginState<RangeState> {
           newValue.selectionStart = null;
         }
         break;
+      }
 
-      case 'RANGE_SELECT_SINGLE':
+      case 'RANGE_SELECT_SINGLE': {
         const singleDate = new Date(transaction.payload.date);
         if (this.isValidDate(singleDate, newValue.options)) {
           if (newValue.options.selectionMode === 'multiple') {
@@ -92,6 +93,7 @@ class RangePluginState extends PluginState<RangeState> {
           }
         }
         break;
+      }
 
       case 'RANGE_HOVER_DATE':
         newValue.hoveredDate = transaction.payload.date ? 
@@ -344,6 +346,7 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
             const existingStart = rangeState.value.selectedRange.start;
             
             // Shift + 클릭으로 범위 선택: 로그로 상태 확인
+            // eslint-disable-next-line no-console
             console.log('범위 선택:', { existingStart, date });
             return true; // 처리됨을 표시
           }
@@ -375,7 +378,7 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
     queries: {
       getSelectedRange: (state, plugin) => {
         const rangeState = plugin.getState(state);
-        return rangeState?.value.selectedRange || null;
+        return rangeState?.value.selectedRange ?? null;
       },
 
       getSelectedDates: (state, plugin) => {
@@ -414,12 +417,12 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
 
       getSelectionMode: (state, plugin) => {
         const rangeState = plugin.getState(state);
-        return rangeState?.value.options.selectionMode || 'range';
+        return rangeState?.value.options.selectionMode ?? 'range';
       },
 
       isSelecting: (state, plugin) => {
         const rangeState = plugin.getState(state);
-        return rangeState?.value.isSelecting || false;
+        return rangeState?.value.isSelecting ?? false;
       }
     }
   };

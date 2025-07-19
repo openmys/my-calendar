@@ -20,24 +20,24 @@ export class CalendarStateFactory {
     timezone?: string;
   } = {}): CalendarState {
     const now = new Date();
-    const currentDate = options.currentDate || now;
+    const currentDate = options.currentDate ?? now;
     
     // 기본 시간 범위 (현재 월)
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     
-    const timeRange = options.timeRange || {
+    const timeRange = options.timeRange ?? {
       start: startOfMonth,
       end: endOfMonth
     };
 
     const state: CalendarState = {
       currentDate,
-      viewType: options.viewType || 'month',
+      viewType: options.viewType ?? 'month',
       timeRange,
       days: this.generateDays(timeRange),
       pluginStates: new Map<string, PluginState>(),
-      timezone: options.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+      timezone: options.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
     };
 
     // 개발 환경에서 불변성 보장
@@ -59,7 +59,7 @@ export class CalendarStateFactory {
     const pluginStates = new Map(state.pluginStates);
     
     plugins.forEach(plugin => {
-      if (plugin && plugin.spec && plugin.spec.state && plugin.spec.state.init) {
+      if (plugin?.spec?.state?.init) {
         const pluginState = plugin.spec.state.init();
         pluginStates.set(plugin.spec.key, pluginState);
       }
@@ -118,7 +118,7 @@ export class CalendarStateFactory {
           end: new Date(year, month + 1, 0)
         };
         
-      case 'week':
+      case 'week': {
         const startOfWeek = new Date(date);
         const dayOfWeek = startOfWeek.getDay();
         startOfWeek.setDate(day - dayOfWeek);
@@ -130,6 +130,7 @@ export class CalendarStateFactory {
           start: startOfWeek,
           end: endOfWeek
         };
+      }
         
       case 'day':
         return {

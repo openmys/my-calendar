@@ -144,7 +144,7 @@ class EventPluginState extends PluginState<EventState> {
         }
         break;
 
-      case 'EVENT_BULK_ADD':
+      case 'EVENT_BULK_ADD': {
         const eventsToAdd = transaction.payload.events as CalendarEvent[];
         for (const event of eventsToAdd) {
           const validEvent = this.createEvent(event);
@@ -154,6 +154,7 @@ class EventPluginState extends PluginState<EventState> {
           }
         }
         break;
+      }
     }
 
     return new EventPluginState(newValue);
@@ -183,7 +184,7 @@ class EventPluginState extends PluginState<EventState> {
     }
     
     // eventsByDate Map 복원
-    state.eventsByDate = new Map(Object.entries(value.eventsByDate || {}));
+    state.eventsByDate = new Map(Object.entries(value.eventsByDate ?? {}));
     
     return new EventPluginState(state);
   }
@@ -191,15 +192,15 @@ class EventPluginState extends PluginState<EventState> {
   private createEvent(eventData: Partial<CalendarEvent>): CalendarEvent {
     const now = new Date();
     return {
-      id: eventData.id || this.generateEventId(),
-      title: eventData.title || 'Untitled Event',
+      id: eventData.id ?? this.generateEventId(),
+      title: eventData.title ?? 'Untitled Event',
       description: eventData.description,
-      startDate: eventData.startDate || now,
-      endDate: eventData.endDate || new Date(now.getTime() + 60 * 60 * 1000), // 1시간 후
-      allDay: eventData.allDay || false,
-      color: eventData.color || '#3174ad',
+      startDate: eventData.startDate ?? now,
+      endDate: eventData.endDate ?? new Date(now.getTime() + 60 * 60 * 1000), // 1시간 후
+      allDay: eventData.allDay ?? false,
+      color: eventData.color ?? '#3174ad',
       category: eventData.category,
-      metadata: eventData.metadata || {},
+      metadata: eventData.metadata ?? {},
       recurrence: eventData.recurrence
     };
   }
@@ -237,7 +238,7 @@ class EventPluginState extends PluginState<EventState> {
     // 하루 최대 이벤트 수 확인
     if (state.options.maxEventsPerDay) {
       const dateKey = this.getDateKey(event.startDate);
-      const eventsOnDate = state.eventsByDate.get(dateKey) || [];
+      const eventsOnDate = state.eventsByDate.get(dateKey) ?? [];
       if (eventsOnDate.length >= state.options.maxEventsPerDay) {
         return false;
       }
@@ -262,13 +263,13 @@ class EventPluginState extends PluginState<EventState> {
       const dateKey = this.getDateKey(current);
       
       if (action === 'add') {
-        const eventsOnDate = state.eventsByDate.get(dateKey) || [];
+        const eventsOnDate = state.eventsByDate.get(dateKey) ?? [];
         if (!eventsOnDate.includes(event.id)) {
           eventsOnDate.push(event.id);
           state.eventsByDate.set(dateKey, eventsOnDate);
         }
       } else {
-        const eventsOnDate = state.eventsByDate.get(dateKey) || [];
+        const eventsOnDate = state.eventsByDate.get(dateKey) ?? [];
         const index = eventsOnDate.indexOf(event.id);
         if (index > -1) {
           eventsOnDate.splice(index, 1);
@@ -369,13 +370,13 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
 
       createEventOnDate: (date: Date, title?: string) => (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
         const eventState = plugin.getState(state);
-        const duration = eventState?.value.options.defaultDuration || 60;
+        const duration = eventState?.value.options.defaultDuration ?? 60;
         
         const startDate = new Date(date);
         const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
         
         const event: Partial<CalendarEvent> = {
-          title: title || `Event on ${date.toLocaleDateString()}`,
+          title: title ?? `Event on ${date.toLocaleDateString()}`,
           startDate,
           endDate,
           allDay: true
@@ -430,7 +431,7 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
             const widget = () => {
               const eventDot = document.createElement('div');
               eventDot.className = 'calendar-event-dot';
-              eventDot.style.backgroundColor = event.color || '#3174ad';
+              eventDot.style.backgroundColor = event.color ?? '#3174ad';
               eventDot.style.width = '6px';
               eventDot.style.height = '6px';
               eventDot.style.borderRadius = '50%';
@@ -487,7 +488,7 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
     queries: {
       getEvent: (state, plugin, eventId: string) => {
         const eventState = plugin.getState(state);
-        return eventState?.value.events.get(eventId) || null;
+        return eventState?.value.events.get(eventId) ?? null;
       },
 
       getEventsOnDate: (state, plugin, date: Date) => {
@@ -495,7 +496,7 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
         if (!eventState) return [];
 
         const dateKey = date.toISOString().split('T')[0];
-        const eventIds = eventState.value.eventsByDate.get(dateKey) || [];
+        const eventIds = eventState.value.eventsByDate.get(dateKey) ?? [];
         return eventIds
           .map(id => eventState.value.events.get(id))
           .filter(Boolean) as CalendarEvent[];
@@ -522,8 +523,8 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
 
       getSelectedEvent: (state, plugin) => {
         const eventState = plugin.getState(state);
-        if (!eventState || !eventState.value.selectedEventId) return null;
-        return eventState.value.events.get(eventState.value.selectedEventId) || null;
+        if (!eventState?.value.selectedEventId) return null;
+        return eventState.value.events.get(eventState.value.selectedEventId) ?? null;
       },
 
       getEventsByCategory: (state, plugin, category: string) => {

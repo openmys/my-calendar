@@ -44,7 +44,7 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
 
       case 'A11Y_ANNOUNCE':
         newValue.announcement = transaction.payload.message;
-        newValue.announcementType = transaction.payload.type || 'polite';
+        newValue.announcementType = transaction.payload.type ?? 'polite';
         break;
 
       case 'A11Y_CLEAR_ANNOUNCEMENT':
@@ -72,7 +72,7 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
       case 'RANGE_SELECT_SINGLE':
       case 'RANGE_SELECT_RANGE':
         if (newValue.options.announceSelections) {
-          const date = transaction.payload.date || transaction.payload.start;
+          const date = transaction.payload.date ?? transaction.payload.start;
           newValue.announcement = this.createSelectionAnnouncement(date, transaction.payload);
           newValue.announcementType = 'assertive';
         }
@@ -85,14 +85,13 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
   toJSON(): AccessibilityState {
     return {
       ...this.value,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       describedBy: Object.fromEntries(this.value.describedBy) as any
     };
   }
 
   static fromJSON(value: any): AccessibilityPluginState {
     const state = { ...value };
-    state.describedBy = new Map(Object.entries(state.describedBy || {}));
+    state.describedBy = new Map(Object.entries(state.describedBy ?? {}));
     if (state.focusedDate) {
       state.focusedDate = new Date(state.focusedDate);
     }
@@ -256,7 +255,7 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
           DecorationFactory.widget(new Date(), () => {
             const announcement = document.createElement('div');
             announcement.className = 'sr-only';
-            announcement.setAttribute('aria-live', a11yState.value.announcementType || 'polite');
+            announcement.setAttribute('aria-live', a11yState.value.announcementType ?? 'polite');
             announcement.setAttribute('aria-atomic', 'true');
             announcement.textContent = a11yState.value.announcement;
             return announcement;
@@ -272,7 +271,7 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
         const a11yState = plugin.getState(state);
         if (!a11yState?.value.options.keyboardNavigation) return false;
 
-        const focusedDate = a11yState.value.focusedDate || state.currentDate;
+        const focusedDate = a11yState.value.focusedDate ?? state.currentDate;
         
         switch (event.key) {
           case 'ArrowRight':
@@ -322,22 +321,22 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
     queries: {
       getFocusedDate: (state, plugin) => {
         const a11yState = plugin.getState(state);
-        return a11yState?.value.focusedDate || null;
+        return a11yState?.value.focusedDate ?? null;
       },
 
       getCurrentAnnouncement: (state, plugin) => {
         const a11yState = plugin.getState(state);
-        return a11yState?.value.announcement || null;
+        return a11yState?.value.announcement ?? null;
       },
 
       getNavigationMode: (state, plugin) => {
         const a11yState = plugin.getState(state);
-        return a11yState?.value.navigationMode || 'grid';
+        return a11yState?.value.navigationMode ?? 'grid';
       },
 
       isKeyboardNavigationEnabled: (state, plugin) => {
         const a11yState = plugin.getState(state);
-        return a11yState?.value.options.keyboardNavigation || false;
+        return a11yState?.value.options.keyboardNavigation ?? false;
       }
     }
   };
@@ -391,14 +390,16 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
       case 'month':
         newDate.setMonth(newDate.getMonth() + amount);
         break;
-      case 'weekStart':
+      case 'weekStart': {
         const day = newDate.getDay();
         newDate.setDate(newDate.getDate() - day);
         break;
-      case 'weekEnd':
+      }
+      case 'weekEnd': {
         const endDay = newDate.getDay();
         newDate.setDate(newDate.getDate() + (6 - endDay));
         break;
+      }
     }
     
     // focusDate 커맨드 실행

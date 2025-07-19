@@ -200,7 +200,6 @@ export class CommandManager {
       if (typeof command === 'function') {
         // 먼저 팩토리 함수로 호출해보기
         if (args.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const actualCommand = (command as any)(...args);
           if (typeof actualCommand === 'function') {
             return actualCommand(state, dispatch);
@@ -412,7 +411,6 @@ export class CommandHistory {
   /**
    * 커맨드 실행 기록 추가
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   record(name: string, args: any[], success: boolean): void {
     this.history.push({
       name,

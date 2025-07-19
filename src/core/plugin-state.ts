@@ -122,7 +122,7 @@ export class StateUpdater<T> {
     const result = { ...target };
 
     for (const key in source) {
-      if (source.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
         if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
           result[key] = this.deepMerge(target[key], source[key]);
         } else {

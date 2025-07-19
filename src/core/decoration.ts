@@ -162,7 +162,7 @@ export class DecorationFactory {
       from: new Date(start),
       to: new Date(end),
       spec: {
-        class: className || 'calendar-range-highlight'
+        class: className ?? 'calendar-range-highlight'
       }
     };
   }
@@ -175,7 +175,7 @@ export class DecorationFactory {
       type: 'overlay',
       from: new Date(date),
       spec: {
-        class: className || 'calendar-overlay',
+        class: className ?? 'calendar-overlay',
         attributes: {
           'data-content': content
         }

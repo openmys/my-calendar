@@ -114,11 +114,11 @@ export class Plugin<T = any> {
   }
 
   get dependencies(): string[] {
-    return this.spec.dependencies || [];
+    return this.spec.dependencies ?? [];
   }
 
   get priority(): number {
-    return this.spec.priority || 0;
+    return this.spec.priority ?? 0;
   }
 
   /**
@@ -146,7 +146,7 @@ export class Plugin<T = any> {
    * 쿼리 실행
    */
   query(name: string, state: CalendarState, ...args: any[]): any {
-    if (!this.spec.queries || !this.spec.queries[name]) {
+    if (!this.spec.queries?.[name]) {
       return undefined;
     }
     return this.spec.queries[name](state, this, ...args);
@@ -371,7 +371,7 @@ export class PluginManager {
 
     for (const message of messages) {
       const targetPlugin = this.plugins.get(message.to);
-      if (targetPlugin && targetPlugin.spec.handleMessage) {
+      if (targetPlugin?.spec.handleMessage) {
         const transaction = targetPlugin.spec.handleMessage(message, state, targetPlugin);
         if (transaction) {
           transactions.push(transaction);
@@ -413,7 +413,7 @@ export class PluginManager {
    */
   handleMessage(message: PluginMessage, state: CalendarState): Transaction | null {
     const targetPlugin = this.plugins.get(message.to);
-    if (targetPlugin && targetPlugin.spec.handleMessage) {
+    if (targetPlugin?.spec.handleMessage) {
       return targetPlugin.spec.handleMessage(message, state, targetPlugin);
     }
     return null;

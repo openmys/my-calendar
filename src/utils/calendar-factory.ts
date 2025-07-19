@@ -102,8 +102,8 @@ export function createFullCalendar(
     element,
     initialDate: options.initialDate,
     viewType: options.viewType,
-    enableRange: options.rangeOptions || true,
-    enableEvents: options.eventOptions || true
+    enableRange: options.rangeOptions ?? true,
+    enableEvents: options.eventOptions ?? true
   });
 }
 
@@ -120,7 +120,7 @@ export function createDatePicker(
   return createCalendar({
     element,
     initialDate: options.initialDate,
-    enableRange: options.rangeOptions || true,
+    enableRange: options.rangeOptions ?? true,
     enableEvents: false
   });
 }
@@ -141,6 +141,6 @@ export function createEventCalendar(
     initialDate: options.initialDate,
     viewType: options.viewType,
     enableRange: false,
-    enableEvents: options.eventOptions || true
+    enableEvents: options.eventOptions ?? true
   });
 }

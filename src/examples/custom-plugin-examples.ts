@@ -261,8 +261,8 @@ export function createAdvancedCounterPlugin(options: {
     })
     .onTransaction('INCREMENT_COUNT', (state, payload) => {
       const dateKey = (payload as any).date;
-      const currentCount = state.counts.get(dateKey) || 0;
-      const maxCount = state.settings.maxCount || Infinity;
+      const currentCount = state.counts.get(dateKey) ?? 0;
+      const maxCount = state.settings.maxCount ?? Infinity;
       
       if (currentCount >= maxCount) {
         return state; // 최대 카운트 도달

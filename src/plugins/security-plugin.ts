@@ -50,7 +50,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
     const newValue = { ...this.value };
 
     switch (transaction.type) {
-      case 'SECURITY_VIOLATION':
+      case 'SECURITY_VIOLATION': {
         const violation: SecurityViolation = {
           id: this.generateViolationId(),
           type: transaction.payload.type,
@@ -73,6 +73,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
           this.handleCriticalViolation(violation);
         }
         break;
+      }
 
       case 'SECURITY_SET_MODE':
         newValue.isSecureMode = transaction.payload.secure;
@@ -126,7 +127,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
 
   static fromJSON(value: any): SecurityPluginState {
     const state = { ...value };
-    state.trustedSources = new Set(state.trustedSources || []);
+    state.trustedSources = new Set(state.trustedSources ?? []);
     return new SecurityPluginState(state);
   }
 
@@ -239,6 +240,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
   private logSecurityViolation(violation: SecurityViolation): void {
     if (typeof console !== 'undefined') {
       const logLevel = this.getLogLevel(violation.severity);
+      // eslint-disable-next-line no-console
       console[logLevel]('Security Violation:', {
         id: violation.id,
         type: violation.type,
@@ -265,7 +267,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
     // 중요한 보안 위반에 대한 추가 조치
     // 예: 특정 기능 비활성화, 관리자에게 알림 등
     
-    if (typeof window !== 'undefined' && window.location) {
+    if (window?.location) {
       // 개발 환경에서만 경고 표시
       if (process.env.NODE_ENV === 'development') {
         console.error('CRITICAL SECURITY VIOLATION:', violation);
@@ -441,17 +443,17 @@ export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<Secu
     queries: {
       getViolations: (state, plugin) => {
         const securityState = plugin.getState(state);
-        return securityState?.value.violations || [];
+        return securityState?.value.violations ?? [];
       },
 
       isSecureMode: (state, plugin) => {
         const securityState = plugin.getState(state);
-        return securityState?.value.isSecureMode || false;
+        return securityState?.value.isSecureMode ?? false;
       },
 
       getTrustedSources: (state, plugin) => {
         const securityState = plugin.getState(state);
-        return Array.from(securityState?.value.trustedSources || []);
+        return Array.from(securityState?.value.trustedSources ?? []);
       },
 
       validateInput: (state, plugin, input: string) => {
@@ -542,6 +544,7 @@ export const SecurityUtils = {
     return input
       .trim()
       .replace(/\s+/g, ' ') // 연속된 공백을 하나로
+      // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // 제어 문자 제거
   }
 };

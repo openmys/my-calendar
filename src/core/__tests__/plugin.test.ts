@@ -74,7 +74,7 @@ function createTestPlugin(initialCount = 0): Plugin<{ count: number }> {
     queries: {
       getCount: (state, plugin) => {
         const testState = plugin.getState(state);
-        return testState?.value.count || 0;
+        return testState?.value.count ?? 0;
       }
     }
   });

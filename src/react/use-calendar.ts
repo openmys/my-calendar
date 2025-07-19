@@ -37,11 +37,7 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // 옵션 메모이제이션
-  const memoizedOptions = useMemo(() => options, [
-    options.plugins,
-    options.initialState,
-    options.autoRender
-  ]);
+  const memoizedOptions = useMemo(() => options, [options]);
 
   // 캘린더 초기화
   useEffect(() => {
@@ -78,6 +74,7 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
       calendarRef.current = null;
       setIsReady(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedOptions]);
 
   // 커맨드 실행 함수
@@ -160,7 +157,7 @@ export function useCalendarRef(options: UseCalendarOptions = {}) {
       setCalendar(null);
       setState(null);
     };
-  }, [elementRef.current]);
+  }, [options]);
 
   return {
     elementRef,
