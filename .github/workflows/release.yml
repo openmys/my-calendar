@@ -1,0 +1,99 @@
+name: Release to NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '배포할 버전 (예: 1.0.0, 1.0.1-beta.0)'
+        required: true
+        type: string
+      tag:
+        description: 'NPM 태그 (latest, beta, alpha)'
+        required: true
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+        default: latest
+
+jobs:
+  release:
+    name: NPM 배포
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Corepack 활성화
+        run: corepack enable
+
+      - name: pnpm 설정
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 의존성 설치
+        run: pnpm install
+
+      - name: 품질 검사
+        run: |
+          pnpm run type-check
+          pnpm run lint
+          pnpm run test
+
+      - name: 버전 업데이트
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          npm version ${{ inputs.version }} --no-git-tag-version
+          git add package.json
+          git commit -m "chore: bump version to ${{ inputs.version }}" || echo "버전 변경사항 없음"
+
+      - name: 프로덕션 빌드
+        run: pnpm run build:prod
+
+      - name: NPM 배포
+        run: npm publish --tag ${{ inputs.tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Git 태그 생성
+        run: |
+          git tag v${{ inputs.version }}
+          git push origin v${{ inputs.version }}
+
+      - name: GitHub Release 생성
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ inputs.version }}
+          release_name: Release v${{ inputs.version }}
+          body: |
+            ## 📦 버전 ${{ inputs.version }} 배포
+            
+            이 릴리스는 GitHub Actions를 통해 자동으로 생성되었습니다.
+            
+            ### 변경 사항
+            - 자세한 변경 사항은 커밋 히스토리를 확인해주세요.
+            
+            ### 설치 방법
+            ```bash
+            npm install @openmys/my-calendar@${{ inputs.version }}
+            # 또는
+            pnpm add @openmys/my-calendar@${{ inputs.version }}
+            ```
+          draft: false
+          prerelease: ${{ inputs.tag != 'latest' }}

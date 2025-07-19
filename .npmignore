@@ -1,0 +1,35 @@
+# 소스 파일 (빌드된 결과물만 포함)
+src/
+.github/
+*.md
+!README.md
+
+# 설정 파일
+.eslintrc.json
+.prettierrc
+.prettierignore
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+vitest.config.ts
+
+# 환경 파일
+.env*
+!.env.example
+
+# 개발 의존성
+node_modules/
+coverage/
+.nyc_output/
+
+# 테스트 파일
+**/*.test.ts
+**/*.test.tsx
+**/__tests__/
+
+# 기타
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

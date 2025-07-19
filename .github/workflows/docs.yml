@@ -1,0 +1,57 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - '*.md'
+  workflow_dispatch:
+
+jobs:
+  docs:
+    name: 문서 생성 및 배포
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Corepack 활성화
+        run: corepack enable
+
+      - name: pnpm 설정
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: 의존성 설치
+        run: pnpm install
+
+      - name: TypeDoc 설치
+        run: pnpm add -D typedoc typedoc-plugin-markdown
+
+      - name: API 문서 생성
+        run: |
+          npx typedoc src/index.ts \
+            --out docs/api \
+            --plugin typedoc-plugin-markdown \
+            --theme markdown \
+            --readme README.md \
+            --includeVersion \
+            --excludePrivate
+
+      - name: GitHub Pages 배포
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true

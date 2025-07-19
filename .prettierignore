@@ -1,0 +1,8 @@
+dist/
+node_modules/
+.git/
+*.md
+*.json
+pnpm-lock.yaml
+*.yml
+*.yaml

@@ -1,0 +1,84 @@
+name: Pull Request Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  pr-check:
+    name: PR 품질 검사
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Corepack 활성화
+        run: corepack enable
+
+      - name: pnpm 설정
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: 의존성 설치
+        run: pnpm install
+
+      - name: 타입 검사 실패시 PR 차단
+        run: pnpm run type-check
+
+      - name: ESLint 검사 실패시 PR 차단
+        run: pnpm run lint
+
+      - name: Prettier 검사 실패시 PR 차단
+        run: pnpm run format:check
+
+      - name: 테스트 실패시 PR 차단
+        run: pnpm run test:coverage
+
+      - name: 빌드 실패시 PR 차단
+        run: pnpm run build
+
+      - name: 번들 크기 분석
+        run: |
+          echo "📦 빌드 결과 분석:"
+          ls -lah dist/
+          
+      - name: PR 댓글 작성
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // 빌드 결과 확인
+            const distPath = path.join(process.cwd(), 'dist');
+            const files = fs.readdirSync(distPath);
+            
+            let comment = '## 🎉 PR 품질 검사 통과!\n\n';
+            comment += '✅ 타입 검사 통과\n';
+            comment += '✅ ESLint 검사 통과\n';
+            comment += '✅ Prettier 검사 통과\n';
+            comment += '✅ 테스트 통과\n';
+            comment += '✅ 빌드 성공\n\n';
+            comment += '### 📦 빌드 결과\n';
+            comment += '```\n';
+            files.forEach(file => {
+              const stat = fs.statSync(path.join(distPath, file));
+              comment += `${file}: ${(stat.size / 1024).toFixed(2)} KB\n`;
+            });
+            comment += '```\n';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -1,0 +1,59 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: 테스트 및 품질 검사
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Corepack 활성화
+        run: corepack enable
+
+      - name: pnpm 설정
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: 의존성 설치
+        run: pnpm install
+
+      - name: 타입 검사
+        run: pnpm run type-check
+
+      - name: ESLint 검사
+        run: pnpm run lint
+
+      - name: Prettier 검사
+        run: pnpm run format:check
+
+      - name: 테스트 실행
+        run: pnpm run test:coverage
+
+      - name: 빌드 테스트
+        run: pnpm run build
+
+      - name: 커버리지 업로드
+        if: matrix.node-version == 20
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true
