@@ -22,6 +22,9 @@ jobs:
     name: NPM 배포
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: 코드 체크아웃
@@ -69,10 +72,18 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: 변경사항 푸시
+        run: |
+          git push origin main || echo "푸시할 변경사항 없음"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Git 태그 생성
         run: |
           git tag v${{ inputs.version }}
           git push origin v${{ inputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: GitHub Release 생성
         uses: actions/create-release@v1
