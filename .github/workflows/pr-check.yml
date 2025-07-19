@@ -8,6 +8,10 @@ jobs:
   pr-check:
     name: PR 품질 검사
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
 
     steps:
       - name: 코드 체크아웃
