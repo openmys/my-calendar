@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://npm.pkg.github.com'
 
       - name: 의존성 설치
         run: pnpm install
