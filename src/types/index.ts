@@ -91,12 +91,16 @@ export interface ViewTransaction extends Transaction<{ viewType: string }> {
   type: 'CHANGE_VIEW';
 }
 
-export interface RangeTransaction extends Transaction<{ start: Date; end: Date }> {
+export interface RangeTransaction
+  extends Transaction<{ start: Date; end: Date }> {
   type: 'SELECT_RANGE';
 }
 
 // 트랜잭션 유니온 타입
-export type KnownTransaction = DateTransaction | ViewTransaction | RangeTransaction;
+export type KnownTransaction =
+  | DateTransaction
+  | ViewTransaction
+  | RangeTransaction;
 
 // 플러그인 상태 추상 클래스
 export abstract class PluginState<T = any> {
@@ -126,7 +130,14 @@ export type AnyFunction = (...args: any[]) => any;
 export type EventHandler<T = Event> = (event: T) => boolean | void;
 
 // 데코레이션 시스템
-export type DecorationType = 'highlight' | 'overlay' | 'widget' | 'badge' | 'tooltip' | 'disable' | 'custom-decoration';
+export type DecorationType =
+  | 'highlight'
+  | 'overlay'
+  | 'widget'
+  | 'badge'
+  | 'tooltip'
+  | 'disable'
+  | 'custom-decoration';
 
 export interface DecorationSpec {
   class?: string;
@@ -178,7 +189,11 @@ export abstract class CalendarError extends Error {
 }
 
 export class ValidationError extends CalendarError {
-  constructor(message: string, public field: string, public value: any) {
+  constructor(
+    message: string,
+    public field: string,
+    public value: any
+  ) {
     super(message, 'VALIDATION_ERROR', { field, value });
   }
 }
@@ -190,7 +205,10 @@ export class TransactionError extends CalendarError {
 }
 
 export class PluginError extends CalendarError {
-  constructor(message: string, public pluginId?: string) {
+  constructor(
+    message: string,
+    public pluginId?: string
+  ) {
     super(message, 'PLUGIN_ERROR', { pluginId });
   }
 }

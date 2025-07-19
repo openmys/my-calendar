@@ -58,16 +58,16 @@ class SecurityPluginState extends PluginState<SecurityState> {
           message: transaction.payload.message,
           payload: transaction.payload.data,
           timestamp: Date.now(),
-          source: transaction.payload.source
+          source: transaction.payload.source,
         };
-        
+
         newValue.violations = [...newValue.violations, violation];
-        
+
         // 로깅 (옵션이 켜져 있는 경우)
         if (newValue.options.logSecurityEvents) {
           this.logSecurityViolation(violation);
         }
-        
+
         // 위험도가 높은 경우 추가 조치
         if (violation.severity === 'critical') {
           this.handleCriticalViolation(violation);
@@ -92,7 +92,10 @@ class SecurityPluginState extends PluginState<SecurityState> {
         break;
 
       case 'SECURITY_SET_OPTIONS':
-        newValue.options = { ...newValue.options, ...transaction.payload.options };
+        newValue.options = {
+          ...newValue.options,
+          ...transaction.payload.options,
+        };
         break;
 
       // 다른 플러그인의 트랜잭션 검증
@@ -107,7 +110,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
               severity: 'medium',
               message: validationResult.message,
               payload: transaction,
-              timestamp: Date.now()
+              timestamp: Date.now(),
             };
             newValue.violations = [...newValue.violations, violation];
           }
@@ -121,7 +124,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
   toJSON(): SecurityState {
     return {
       ...this.value,
-      trustedSources: Array.from(this.value.trustedSources) as any
+      trustedSources: Array.from(this.value.trustedSources) as any,
     };
   }
 
@@ -135,7 +138,10 @@ class SecurityPluginState extends PluginState<SecurityState> {
     return `violation-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private validateTransaction(transaction: Transaction): { valid: boolean; message: string } {
+  private validateTransaction(transaction: Transaction): {
+    valid: boolean;
+    message: string;
+  } {
     // 기본 트랜잭션 구조 검증
     if (!transaction.type || typeof transaction.type !== 'string') {
       return { valid: false, message: 'Invalid transaction type' };
@@ -154,10 +160,10 @@ class SecurityPluginState extends PluginState<SecurityState> {
       case 'EVENT_ADD':
       case 'EVENT_UPDATE':
         return this.validateEventData(transaction.payload);
-      
+
       case 'RANGE_SELECT_RANGE':
         return this.validateDateRange(transaction.payload);
-      
+
       default:
         return { valid: true, message: '' };
     }
@@ -174,7 +180,10 @@ class SecurityPluginState extends PluginState<SecurityState> {
     }
 
     if (data.description && this.containsUnsafeHTML(data.description)) {
-      return { valid: false, message: 'Event description contains unsafe HTML' };
+      return {
+        valid: false,
+        message: 'Event description contains unsafe HTML',
+      };
     }
 
     // 날짜 필드 검증
@@ -218,7 +227,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
       /on\w+\s*=/gi,
       /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
       /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi,
-      /<embed\b[^<]*>/gi
+      /<embed\b[^<]*>/gi,
     ];
 
     return dangerousPatterns.some(pattern => pattern.test(text));
@@ -228,12 +237,12 @@ class SecurityPluginState extends PluginState<SecurityState> {
     if (dateValue instanceof Date) {
       return !isNaN(dateValue.getTime());
     }
-    
+
     if (typeof dateValue === 'string' || typeof dateValue === 'number') {
       const date = new Date(dateValue);
       return !isNaN(date.getTime());
     }
-    
+
     return false;
   }
 
@@ -246,7 +255,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
         type: violation.type,
         severity: violation.severity,
         message: violation.message,
-        timestamp: new Date(violation.timestamp).toISOString()
+        timestamp: new Date(violation.timestamp).toISOString(),
       });
     }
   }
@@ -266,7 +275,7 @@ class SecurityPluginState extends PluginState<SecurityState> {
   private handleCriticalViolation(violation: SecurityViolation): void {
     // 중요한 보안 위반에 대한 추가 조치
     // 예: 특정 기능 비활성화, 관리자에게 알림 등
-    
+
     if (window?.location) {
       // 개발 환경에서만 경고 표시
       if (process.env.NODE_ENV === 'development') {
@@ -285,12 +294,22 @@ export class HTMLSanitizer {
 
   constructor(allowedTags: string[] = [], allowedAttributes: string[] = []) {
     this.allowedTags = new Set([
-      'b', 'i', 'em', 'strong', 'u', 'span', 'div', 'p', 'br',
-      ...allowedTags
+      'b',
+      'i',
+      'em',
+      'strong',
+      'u',
+      'span',
+      'div',
+      'p',
+      'br',
+      ...allowedTags,
     ]);
     this.allowedAttributes = new Set([
-      'class', 'id', 'style',
-      ...allowedAttributes
+      'class',
+      'id',
+      'style',
+      ...allowedAttributes,
     ]);
   }
 
@@ -306,7 +325,10 @@ export class HTMLSanitizer {
       this.sanitizeNode(doc.body);
       return doc.body.innerHTML;
     } catch (error) {
-      console.warn('HTML sanitization failed, using basic sanitization:', error);
+      console.warn(
+        'HTML sanitization failed, using basic sanitization:',
+        error
+      );
       return this.basicSanitize(html);
     }
   }
@@ -314,7 +336,7 @@ export class HTMLSanitizer {
   private sanitizeNode(node: Node): void {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as Element;
-      
+
       // 허용되지 않는 태그 제거
       if (!this.allowedTags.has(element.tagName.toLowerCase())) {
         element.remove();
@@ -329,7 +351,7 @@ export class HTMLSanitizer {
           attributesToRemove.push(attr.name);
         }
       }
-      
+
       attributesToRemove.forEach(attrName => {
         element.removeAttribute(attrName);
       });
@@ -354,7 +376,9 @@ export class HTMLSanitizer {
 /**
  * Security Plugin 생성 함수
  */
-export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<SecurityState> {
+export function createSecurityPlugin(
+  options: SecurityOptions = {}
+): Plugin<SecurityState> {
   const defaultOptions: SecurityOptions = {
     enableInputValidation: true,
     enableXSSProtection: true,
@@ -362,7 +386,7 @@ export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<Secu
     maxInputLength: 10000,
     allowedHTMLTags: ['b', 'i', 'em', 'strong', 'u'],
     sanitizeHTML: true,
-    logSecurityEvents: true
+    logSecurityEvents: true,
   };
 
   const finalOptions = { ...defaultOptions, ...options };
@@ -372,23 +396,30 @@ export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<Secu
     priority: 2000, // 매우 높은 우선순위로 모든 트랜잭션을 먼저 검증
 
     state: {
-      init: () => new SecurityPluginState({
-        violations: [],
-        isSecureMode: true,
-        trustedSources: new Set(),
-        sanitizer: null,
-        options: finalOptions
-      }),
-      apply: (transaction, state) => state.apply(transaction)
+      init: () =>
+        new SecurityPluginState({
+          violations: [],
+          isSecureMode: true,
+          trustedSources: new Set(),
+          sanitizer: null,
+          options: finalOptions,
+        }),
+      apply: (transaction, state) => state.apply(transaction),
     },
 
-    commands: (_plugin) => ({
-      reportViolation: (type: string, severity: string, message: string, data?: any) => 
+    commands: _plugin => ({
+      reportViolation:
+        (type: string, severity: string, message: string, data?: any) =>
         (_state: any, dispatch?: any) => {
           if (dispatch) {
-            dispatch(transactions.custom('SECURITY_VIOLATION', {
-              type, severity, message, data
-            }));
+            dispatch(
+              transactions.custom('SECURITY_VIOLATION', {
+                type,
+                severity,
+                message,
+                data,
+              })
+            );
           }
           return true;
         },
@@ -402,7 +433,9 @@ export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<Secu
 
       addTrustedSource: (source: string) => (_state: any, dispatch?: any) => {
         if (dispatch) {
-          dispatch(transactions.custom('SECURITY_ADD_TRUSTED_SOURCE', { source }));
+          dispatch(
+            transactions.custom('SECURITY_ADD_TRUSTED_SOURCE', { source })
+          );
         }
         return true;
       },
@@ -412,7 +445,7 @@ export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<Secu
           dispatch(transactions.custom('SECURITY_CLEAR_VIOLATIONS', {}));
         }
         return true;
-      }
+      },
     }),
 
     decorations: (_state, _plugin) => {
@@ -429,11 +462,16 @@ export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<Secu
       if (!securityState.value.isSecureMode) return true;
 
       // 트랜잭션 검증
-      const validationResult = (securityState as any).validateTransaction(transaction);
-      
+      const validationResult = (securityState as any).validateTransaction(
+        transaction
+      );
+
       if (!validationResult.valid) {
         // 유효하지 않은 트랜잭션 차단
-        console.warn('Transaction blocked by security filter:', validationResult.message);
+        console.warn(
+          'Transaction blocked by security filter:',
+          validationResult.message
+        );
         return false;
       }
 
@@ -463,17 +501,17 @@ export function createSecurityPlugin(options: SecurityOptions = {}): Plugin<Secu
         const sanitizer = new HTMLSanitizer(
           securityState.value.options.allowedHTMLTags
         );
-        
+
         const containsHTML = /<[a-z][\s\S]*>/i.test(input);
         const sanitized = containsHTML ? sanitizer.sanitize(input) : input;
-        
+
         return {
           valid: sanitized === input,
           message: sanitized !== input ? 'Input contains unsafe content' : '',
-          sanitized
+          sanitized,
         };
-      }
-    }
+      },
+    },
   };
 
   return new Plugin(spec);
@@ -494,13 +532,20 @@ export class SecurityError extends Error {
 }
 
 export class ValidationError extends SecurityError {
-  constructor(message: string, public field: string, public value: any) {
+  constructor(
+    message: string,
+    public field: string,
+    public value: any
+  ) {
     super(message, 'VALIDATION_ERROR', 'medium');
   }
 }
 
 export class XSSError extends SecurityError {
-  constructor(message: string, public payload: string) {
+  constructor(
+    message: string,
+    public payload: string
+  ) {
     super(message, 'XSS_ERROR', 'high');
   }
 }
@@ -521,17 +566,23 @@ export const SecurityUtils = {
   /**
    * CSP 헤더 생성
    */
-  generateCSPHeader(options: { allowInlineStyles?: boolean; allowInlineScripts?: boolean } = {}): string {
+  generateCSPHeader(
+    options: { allowInlineStyles?: boolean; allowInlineScripts?: boolean } = {}
+  ): string {
     const directives = [
       "default-src 'self'",
-      options.allowInlineStyles ? "style-src 'self' 'unsafe-inline'" : "style-src 'self'",
-      options.allowInlineScripts ? "script-src 'self' 'unsafe-inline'" : "script-src 'self'",
+      options.allowInlineStyles
+        ? "style-src 'self' 'unsafe-inline'"
+        : "style-src 'self'",
+      options.allowInlineScripts
+        ? "script-src 'self' 'unsafe-inline'"
+        : "script-src 'self'",
       "img-src 'self' data:",
       "connect-src 'self'",
       "font-src 'self'",
       "object-src 'none'",
       "base-uri 'self'",
-      "form-action 'self'"
+      "form-action 'self'",
     ];
 
     return directives.join('; ');
@@ -541,10 +592,12 @@ export const SecurityUtils = {
    * 입력값 정규화
    */
   normalizeInput(input: string): string {
-    return input
-      .trim()
-      .replace(/\s+/g, ' ') // 연속된 공백을 하나로
-      // eslint-disable-next-line no-control-regex
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // 제어 문자 제거
-  }
+    return (
+      input
+        .trim()
+        .replace(/\s+/g, ' ') // 연속된 공백을 하나로
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    ); // 제어 문자 제거
+  },
 };

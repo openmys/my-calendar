@@ -11,138 +11,171 @@ import { transactions } from './transaction';
  */
 export const coreCommands: CommandMap = {
   // 날짜 네비게이션 커맨드
-  goToNextMonth: () => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (dispatch) {
-      dispatch(transactions.changeMonth('next'));
-    }
-    return true;
-  },
+  goToNextMonth:
+    () =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (dispatch) {
+        dispatch(transactions.changeMonth('next'));
+      }
+      return true;
+    },
 
-  goToPreviousMonth: () => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (dispatch) {
-      dispatch(transactions.changeMonth('previous'));
-    }
-    return true;
-  },
+  goToPreviousMonth:
+    () =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (dispatch) {
+        dispatch(transactions.changeMonth('previous'));
+      }
+      return true;
+    },
 
-  goToNextWeek: () => (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    const currentDate = new Date(state.currentDate);
-    currentDate.setDate(currentDate.getDate() + 7);
-    
-    if (dispatch) {
-      dispatch(transactions.selectDate(currentDate));
-    }
-    return true;
-  },
+  goToNextWeek:
+    () =>
+    (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      const currentDate = new Date(state.currentDate);
+      currentDate.setDate(currentDate.getDate() + 7);
 
-  goToPreviousWeek: () => (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    const currentDate = new Date(state.currentDate);
-    currentDate.setDate(currentDate.getDate() - 7);
-    
-    if (dispatch) {
-      dispatch(transactions.selectDate(currentDate));
-    }
-    return true;
-  },
+      if (dispatch) {
+        dispatch(transactions.selectDate(currentDate));
+      }
+      return true;
+    },
 
-  goToNextDay: () => (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    const currentDate = new Date(state.currentDate);
-    currentDate.setDate(currentDate.getDate() + 1);
-    
-    if (dispatch) {
-      dispatch(transactions.selectDate(currentDate));
-    }
-    return true;
-  },
+  goToPreviousWeek:
+    () =>
+    (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      const currentDate = new Date(state.currentDate);
+      currentDate.setDate(currentDate.getDate() - 7);
 
-  goToPreviousDay: () => (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    const currentDate = new Date(state.currentDate);
-    currentDate.setDate(currentDate.getDate() - 1);
-    
-    if (dispatch) {
-      dispatch(transactions.selectDate(currentDate));
-    }
-    return true;
-  },
+      if (dispatch) {
+        dispatch(transactions.selectDate(currentDate));
+      }
+      return true;
+    },
 
-  goToToday: () => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (dispatch) {
-      dispatch(transactions.selectDate(new Date()));
-    }
-    return true;
-  },
+  goToNextDay:
+    () =>
+    (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      const currentDate = new Date(state.currentDate);
+      currentDate.setDate(currentDate.getDate() + 1);
+
+      if (dispatch) {
+        dispatch(transactions.selectDate(currentDate));
+      }
+      return true;
+    },
+
+  goToPreviousDay:
+    () =>
+    (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      const currentDate = new Date(state.currentDate);
+      currentDate.setDate(currentDate.getDate() - 1);
+
+      if (dispatch) {
+        dispatch(transactions.selectDate(currentDate));
+      }
+      return true;
+    },
+
+  goToToday:
+    () =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (dispatch) {
+        dispatch(transactions.selectDate(new Date()));
+      }
+      return true;
+    },
 
   // 날짜 선택 커맨드
-  selectDate: (date: Date) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (!(date instanceof Date) || isNaN(date.getTime())) {
-      return false;
-    }
+  selectDate:
+    (date: Date) =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (!(date instanceof Date) || isNaN(date.getTime())) {
+        return false;
+      }
 
-    if (dispatch) {
-      dispatch(transactions.selectDate(date));
-    }
-    return true;
-  },
+      if (dispatch) {
+        dispatch(transactions.selectDate(date));
+      }
+      return true;
+    },
 
   // 뷰 변경 커맨드
-  changeView: (viewType: string) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    const allowedViews = ['month', 'week', 'day', 'timeline', 'gantt', 'list'];
-    
-    if (!allowedViews.includes(viewType)) {
-      return false;
-    }
+  changeView:
+    (viewType: string) =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      const allowedViews = [
+        'month',
+        'week',
+        'day',
+        'timeline',
+        'gantt',
+        'list',
+      ];
 
-    if (dispatch) {
-      dispatch(transactions.changeView(viewType));
-    }
-    return true;
-  },
+      if (!allowedViews.includes(viewType)) {
+        return false;
+      }
+
+      if (dispatch) {
+        dispatch(transactions.changeView(viewType));
+      }
+      return true;
+    },
 
   // 범위 선택 커맨드
-  selectRange: (start: Date, end: Date) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-      return false;
-    }
+  selectRange:
+    (start: Date, end: Date) =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (!(start instanceof Date) || !(end instanceof Date)) {
+        return false;
+      }
 
-    if (start > end) {
-      return false;
-    }
+      if (start > end) {
+        return false;
+      }
 
-    if (dispatch) {
-      dispatch(transactions.selectRange(start, end));
-    }
-    return true;
-  },
+      if (dispatch) {
+        dispatch(transactions.selectRange(start, end));
+      }
+      return true;
+    },
 
-  clearSelection: () => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (dispatch) {
-      dispatch(transactions.clearSelection());
-    }
-    return true;
-  },
+  clearSelection:
+    () =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (dispatch) {
+        dispatch(transactions.clearSelection());
+      }
+      return true;
+    },
 
   // 플러그인 관리 커맨드
-  enablePlugin: (pluginId: string) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (!pluginId || typeof pluginId !== 'string') {
-      return false;
-    }
+  enablePlugin:
+    (pluginId: string) =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (!pluginId || typeof pluginId !== 'string') {
+        return false;
+      }
 
-    if (dispatch) {
-      dispatch(transactions.enablePlugin(pluginId));
-    }
-    return true;
-  },
+      if (dispatch) {
+        dispatch(transactions.enablePlugin(pluginId));
+      }
+      return true;
+    },
 
-  disablePlugin: (pluginId: string) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-    if (!pluginId || typeof pluginId !== 'string') {
-      return false;
-    }
+  disablePlugin:
+    (pluginId: string) =>
+    (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
+      if (!pluginId || typeof pluginId !== 'string') {
+        return false;
+      }
 
-    if (dispatch) {
-      dispatch(transactions.disablePlugin(pluginId));
-    }
-    return true;
-  }
+      if (dispatch) {
+        dispatch(transactions.disablePlugin(pluginId));
+      }
+      return true;
+    },
 };
 
 /**
@@ -150,7 +183,8 @@ export const coreCommands: CommandMap = {
  * 커맨드의 등록, 실행, 관리를 담당
  */
 export class CommandManager {
-  private commands: Map<string, Command | ((...args: unknown[]) => Command)> = new Map();
+  private commands: Map<string, Command | ((...args: unknown[]) => Command)> =
+    new Map();
 
   constructor() {
     this.registerCommands(coreCommands);
@@ -159,7 +193,10 @@ export class CommandManager {
   /**
    * 커맨드 등록
    */
-  registerCommand(name: string, command: Command | ((...args: unknown[]) => Command)): void {
+  registerCommand(
+    name: string,
+    command: Command | ((...args: unknown[]) => Command)
+  ): void {
     this.commands.set(name, command);
   }
 
@@ -183,13 +220,13 @@ export class CommandManager {
    * 커맨드 실행
    */
   executeCommand(
-    name: string, 
-    state: CalendarState, 
+    name: string,
+    state: CalendarState,
     dispatch?: (transaction: Transaction) => void,
     ...args: unknown[]
   ): boolean {
     const command = this.commands.get(name);
-    
+
     if (!command) {
       console.warn(`Command '${name}' not found`);
       return false;
@@ -268,7 +305,13 @@ export class CommandValidator {
     }
 
     // 필수 필드 확인
-    const requiredFields = ['currentDate', 'viewType', 'timeRange', 'days', 'pluginStates'];
+    const requiredFields = [
+      'currentDate',
+      'viewType',
+      'timeRange',
+      'days',
+      'pluginStates',
+    ];
     for (const field of requiredFields) {
       if (!(field in state)) {
         throw new Error(`State missing required field: ${field}`);
@@ -305,12 +348,12 @@ export class CommandComposer {
   static sequence(...commands: Command[]): Command {
     return (state: CalendarState, dispatch) => {
       const currentState = state;
-      
+
       for (const command of commands) {
         try {
           CommandValidator.validateCommand(command);
           const result = command(currentState, dispatch);
-          
+
           if (!result) {
             return false; // 하나라도 실패하면 전체 실패
           }
@@ -319,7 +362,7 @@ export class CommandComposer {
           return false;
         }
       }
-      
+
       return true;
     };
   }
@@ -350,10 +393,14 @@ export class CommandComposer {
   /**
    * 재시도 커맨드 생성
    */
-  static retry(command: Command, maxAttempts: number = 3, delay: number = 0): Command {
+  static retry(
+    command: Command,
+    maxAttempts: number = 3,
+    delay: number = 0
+  ): Command {
     return (state: CalendarState, dispatch) => {
       let success = false;
-      
+
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
           const result = command(state, dispatch);
@@ -405,7 +452,7 @@ export class CommandHistory {
     timestamp: number;
     success: boolean;
   }> = [];
-  
+
   private maxHistory: number = 100;
 
   /**
@@ -416,7 +463,7 @@ export class CommandHistory {
       name,
       args,
       timestamp: Date.now(),
-      success
+      success,
     });
 
     // 히스토리 크기 제한
@@ -473,6 +520,8 @@ export class CommandHistory {
     timestamp: number;
     success: boolean;
   } | null {
-    return this.history.length > 0 ? this.history[this.history.length - 1] : null;
+    return this.history.length > 0
+      ? this.history[this.history.length - 1]
+      : null;
   }
 }

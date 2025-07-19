@@ -16,7 +16,7 @@ export class DecorationSet {
    * 특정 날짜의 데코레이션 찾기
    */
   find(date: Date): Decoration[] {
-    return this.decorations.filter((decoration) => {
+    return this.decorations.filter(decoration => {
       if (decoration.to) {
         // 범위 데코레이션
         return date >= decoration.from && date <= decoration.to;
@@ -30,7 +30,7 @@ export class DecorationSet {
    * 날짜 범위의 데코레이션 찾기
    */
   findInRange(start: Date, end: Date): Decoration[] {
-    return this.decorations.filter((decoration) => {
+    return this.decorations.filter(decoration => {
       if (decoration.to) {
         // 범위 데코레이션과 범위가 겹치는지 확인
         return decoration.from <= end && decoration.to >= start;
@@ -58,7 +58,9 @@ export class DecorationSet {
    * 데코레이션 제거
    */
   remove(filter: (decoration: Decoration) => boolean): DecorationSet {
-    return new DecorationSet(this.decorations.filter((decoration) => !filter(decoration)));
+    return new DecorationSet(
+      this.decorations.filter(decoration => !filter(decoration))
+    );
   }
 
   /**
@@ -114,7 +116,9 @@ export class DecorationSet {
    * 데코레이션 정렬 (날짜 순)
    */
   sort(): DecorationSet {
-    const sorted = [...this.decorations].sort((a, b) => a.from.getTime() - b.from.getTime());
+    const sorted = [...this.decorations].sort(
+      (a, b) => a.from.getTime() - b.from.getTime()
+    );
     return new DecorationSet(sorted);
   }
 
@@ -122,9 +126,11 @@ export class DecorationSet {
    * 두 날짜가 같은 날인지 확인
    */
   private isSameDay(date1: Date, date2: Date): boolean {
-    return date1.getFullYear() === date2.getFullYear() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getDate() === date2.getDate();
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
   }
 
   /**
@@ -148,22 +154,26 @@ export class DecorationFactory {
       type: 'highlight',
       from: new Date(date),
       spec: {
-        class: className ?? 'calendar-highlight'
-      }
+        class: className ?? 'calendar-highlight',
+      },
     };
   }
 
   /**
    * 범위 하이라이트 데코레이션 생성
    */
-  static highlightRange(start: Date, end: Date, className?: string): Decoration {
+  static highlightRange(
+    start: Date,
+    end: Date,
+    className?: string
+  ): Decoration {
     return {
       type: 'highlight',
       from: new Date(start),
       to: new Date(end),
       spec: {
-        class: className ?? 'calendar-range-highlight'
-      }
+        class: className ?? 'calendar-range-highlight',
+      },
     };
   }
 
@@ -177,9 +187,9 @@ export class DecorationFactory {
       spec: {
         class: className ?? 'calendar-overlay',
         attributes: {
-          'data-content': content
-        }
-      }
+          'data-content': content,
+        },
+      },
     };
   }
 
@@ -191,22 +201,26 @@ export class DecorationFactory {
       type: 'widget',
       from: new Date(date),
       spec: {
-        widget: widgetFactory
-      }
+        widget: widgetFactory,
+      },
     };
   }
 
   /**
    * 커스텀 스타일 데코레이션 생성
    */
-  static customStyle(date: Date, style: string, className?: string): Decoration {
+  static customStyle(
+    date: Date,
+    style: string,
+    className?: string
+  ): Decoration {
     return {
       type: 'highlight',
       from: new Date(date),
       spec: {
         class: className,
-        style
-      }
+        style,
+      },
     };
   }
 
@@ -222,23 +236,28 @@ export class DecorationFactory {
         style: color ? `background-color: ${color}` : undefined,
         attributes: {
           'data-event-title': title,
-          'title': title
-        }
-      }
+          title: title,
+        },
+      },
     };
   }
 
   /**
    * 다중일 이벤트 데코레이션 생성
    */
-  static multiDayEvent(start: Date, end: Date, title: string, color?: string): Decoration[] {
+  static multiDayEvent(
+    start: Date,
+    end: Date,
+    title: string,
+    color?: string
+  ): Decoration[] {
     const decorations: Decoration[] = [];
     const current = new Date(start);
 
     while (current <= end) {
       const isStart = current.getTime() === start.getTime();
       const isEnd = current.getTime() === end.getTime();
-      
+
       let className = 'calendar-event-multi';
       if (isStart) className += ' event-start';
       if (isEnd) className += ' event-end';
@@ -252,10 +271,10 @@ export class DecorationFactory {
           style: color ? `background-color: ${color}` : undefined,
           attributes: {
             'data-event-title': title,
-            'title': title,
-            'data-event-part': isStart ? 'start' : isEnd ? 'end' : 'middle'
-          }
-        }
+            title: title,
+            'data-event-part': isStart ? 'start' : isEnd ? 'end' : 'middle',
+          },
+        },
       });
 
       current.setDate(current.getDate() + 1);
@@ -297,9 +316,12 @@ export class DecorationRenderer {
   /**
    * 하이라이트 데코레이션 렌더링
    */
-  private renderHighlight(element: HTMLElement, decoration: Decoration): HTMLElement[] {
+  private renderHighlight(
+    element: HTMLElement,
+    decoration: Decoration
+  ): HTMLElement[] {
     const { spec } = decoration;
-    
+
     if (spec.class) {
       element.classList.add(spec.class);
     }
@@ -320,7 +342,10 @@ export class DecorationRenderer {
   /**
    * 오버레이 데코레이션 렌더링
    */
-  private renderOverlay(element: HTMLElement, decoration: Decoration): HTMLElement[] {
+  private renderOverlay(
+    element: HTMLElement,
+    decoration: Decoration
+  ): HTMLElement[] {
     const overlayElement = document.createElement('div');
     const { spec } = decoration;
 
@@ -335,7 +360,7 @@ export class DecorationRenderer {
     if (spec.attributes) {
       for (const [key, value] of Object.entries(spec.attributes)) {
         overlayElement.setAttribute(key, value);
-        
+
         // 특별한 속성 처리
         if (key === 'data-content') {
           overlayElement.textContent = value;
@@ -350,9 +375,12 @@ export class DecorationRenderer {
   /**
    * 위젯 데코레이션 렌더링
    */
-  private renderWidget(element: HTMLElement, decoration: Decoration): HTMLElement[] {
+  private renderWidget(
+    element: HTMLElement,
+    decoration: Decoration
+  ): HTMLElement[] {
     const { spec } = decoration;
-    
+
     if (!spec.widget) {
       console.warn('Widget decoration missing widget factory');
       return [];
@@ -360,7 +388,7 @@ export class DecorationRenderer {
 
     try {
       const widget = spec.widget();
-      
+
       if (spec.class) {
         widget.classList.add(spec.class);
       }
@@ -427,7 +455,9 @@ export class DecorationRenderer {
     attributesToRemove.forEach(attr => element.removeAttribute(attr));
 
     // 자식 데코레이션 요소들 제거
-    const decorationChildren = element.querySelectorAll('.calendar-overlay, .calendar-widget');
+    const decorationChildren = element.querySelectorAll(
+      '.calendar-overlay, .calendar-widget'
+    );
     decorationChildren.forEach(child => child.remove());
   }
 }

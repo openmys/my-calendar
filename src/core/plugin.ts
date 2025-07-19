@@ -3,14 +3,14 @@
  * ProseMirror 스타일의 플러그인 아키텍처
  */
 
-import { 
-  CalendarState, 
-  PluginState, 
-  Transaction, 
-  CommandMap, 
+import {
+  CalendarState,
+  PluginState,
+  Transaction,
+  CommandMap,
   PluginMessage,
   DragData,
-  ResizeData
+  ResizeData,
 } from '@/types';
 import { DecorationSet } from './decoration';
 
@@ -19,7 +19,7 @@ import { DecorationSet } from './decoration';
  */
 export interface PluginSpec<T = any> {
   key: string;
-  
+
   // 플러그인 의존성
   dependencies?: string[];
   priority?: number;
@@ -73,19 +73,23 @@ export interface PluginSpec<T = any> {
     state: CalendarState,
     plugin: Plugin<T>
   ) => boolean;
-  
+
   appendTransaction?: (
     transactions: Transaction[],
     oldState: CalendarState,
     newState: CalendarState,
     plugin: Plugin<T>
   ) => Transaction | null;
-  
+
   // 플러그인 쿼리
   queries?: {
-    [queryName: string]: (state: CalendarState, plugin: Plugin<T>, ...args: any[]) => any;
+    [queryName: string]: (
+      state: CalendarState,
+      plugin: Plugin<T>,
+      ...args: any[]
+    ) => any;
   };
-  
+
   // 플러그인 간 메시지 처리
   handleMessage?: (
     message: PluginMessage,
@@ -139,7 +143,9 @@ export class Plugin<T = any> {
    * 플러그인의 데코레이션 가져오기
    */
   getDecorations(state: CalendarState): DecorationSet {
-    return this.spec.decorations ? this.spec.decorations(state, this) : new DecorationSet();
+    return this.spec.decorations
+      ? this.spec.decorations(state, this)
+      : new DecorationSet();
   }
 
   /**
@@ -178,10 +184,10 @@ export class PluginManager {
     if (this.plugins.has(plugin.key)) {
       throw new Error(`Plugin with key "${plugin.key}" is already registered`);
     }
-    
+
     // 의존성 확인
     this.validateDependencies(plugin);
-    
+
     this.plugins.set(plugin.key, plugin);
     this.sortPlugins();
   }
@@ -192,7 +198,7 @@ export class PluginManager {
   registerAll(plugins: Plugin[]): void {
     // 의존성 순서로 정렬하여 등록
     const sortedByDependency = this.sortByDependencies(plugins);
-    
+
     for (const plugin of sortedByDependency) {
       this.register(plugin);
     }
@@ -245,12 +251,12 @@ export class PluginManager {
    */
   getAllCommands(): CommandMap {
     const allCommands: CommandMap = {};
-    
+
     for (const plugin of this.sortedPlugins) {
       const commands = plugin.getCommands();
       Object.assign(allCommands, commands);
     }
-    
+
     return allCommands;
   }
 
@@ -259,12 +265,12 @@ export class PluginManager {
    */
   getAllDecorations(state: CalendarState): DecorationSet {
     let decorations = new DecorationSet();
-    
+
     for (const plugin of this.sortedPlugins) {
       const pluginDecorations = plugin.getDecorations(state);
       decorations = decorations.addAll(pluginDecorations.decorations);
     }
-    
+
     return decorations;
   }
 
@@ -291,16 +297,21 @@ export class PluginManager {
     newState: CalendarState
   ): Transaction[] {
     const additionalTransactions: Transaction[] = [];
-    
+
     for (const plugin of this.sortedPlugins) {
       if (plugin.spec.appendTransaction) {
-        const additional = plugin.spec.appendTransaction(transactions, oldState, newState, plugin);
+        const additional = plugin.spec.appendTransaction(
+          transactions,
+          oldState,
+          newState,
+          plugin
+        );
         if (additional) {
           additionalTransactions.push(additional);
         }
       }
     }
-    
+
     return additionalTransactions;
   }
 
@@ -317,16 +328,26 @@ export class PluginManager {
       if (!props) continue;
 
       let handled = false;
-      
+
       switch (eventType) {
         case 'dateClick':
           if (props.handleDateClick) {
-            handled = props.handleDateClick(eventData.date, eventData.event, state, plugin);
+            handled = props.handleDateClick(
+              eventData.date,
+              eventData.event,
+              state,
+              plugin
+            );
           }
           break;
         case 'timeClick':
           if (props.handleTimeClick) {
-            handled = props.handleTimeClick(eventData.datetime, eventData.event, state, plugin);
+            handled = props.handleTimeClick(
+              eventData.datetime,
+              eventData.event,
+              state,
+              plugin
+            );
           }
           break;
         case 'keyDown':
@@ -350,7 +371,7 @@ export class PluginManager {
         return true; // 이벤트가 처리되면 더 이상 전파하지 않음
       }
     }
-    
+
     return false;
   }
 
@@ -372,7 +393,11 @@ export class PluginManager {
     for (const message of messages) {
       const targetPlugin = this.plugins.get(message.to);
       if (targetPlugin?.spec.handleMessage) {
-        const transaction = targetPlugin.spec.handleMessage(message, state, targetPlugin);
+        const transaction = targetPlugin.spec.handleMessage(
+          message,
+          state,
+          targetPlugin
+        );
         if (transaction) {
           transactions.push(transaction);
         }
@@ -385,7 +410,12 @@ export class PluginManager {
   /**
    * 쿼리 실행
    */
-  query(pluginKey: string, queryName: string, state: CalendarState, ...args: any[]): any {
+  query(
+    pluginKey: string,
+    queryName: string,
+    state: CalendarState,
+    ...args: any[]
+  ): any {
     const plugin = this.plugins.get(pluginKey);
     return plugin ? plugin.query(queryName, state, ...args) : undefined;
   }
@@ -411,7 +441,10 @@ export class PluginManager {
   /**
    * 메시지 핸들링
    */
-  handleMessage(message: PluginMessage, state: CalendarState): Transaction | null {
+  handleMessage(
+    message: PluginMessage,
+    state: CalendarState
+  ): Transaction | null {
     const targetPlugin = this.plugins.get(message.to);
     if (targetPlugin?.spec.handleMessage) {
       return targetPlugin.spec.handleMessage(message, state, targetPlugin);
@@ -424,10 +457,12 @@ export class PluginManager {
    */
   private validateDependencies(plugin: Plugin): void {
     if (!plugin.dependencies) return;
-    
+
     for (const dependency of plugin.dependencies) {
       if (!this.plugins.has(dependency)) {
-        throw new Error(`Plugin ${plugin.key} depends on ${dependency}, but it's not registered`);
+        throw new Error(
+          `Plugin ${plugin.key} depends on ${dependency}, but it's not registered`
+        );
       }
     }
   }
@@ -450,9 +485,11 @@ export class PluginManager {
 
     const visit = (plugin: Plugin) => {
       if (visiting.has(plugin.key)) {
-        throw new Error(`Circular dependency detected involving plugin: ${plugin.key}`);
+        throw new Error(
+          `Circular dependency detected involving plugin: ${plugin.key}`
+        );
       }
-      
+
       if (visited.has(plugin.key)) {
         return;
       }
@@ -496,37 +533,54 @@ export class PluginFactory {
     handlers: Partial<{
       handleTransaction: (transaction: Transaction, state: T) => T;
       handleDateClick: (date: Date, event: MouseEvent, state: T) => boolean;
-      createDecorations: (calendarState: CalendarState, state: T) => DecorationSet;
+      createDecorations: (
+        calendarState: CalendarState,
+        state: T
+      ) => DecorationSet;
     }>
   ): Plugin<T> {
     return new Plugin({
       key,
       state: {
-        init: () => new (class extends PluginState<T> {
-          apply(transaction: Transaction): PluginState<T> {
-            if (handlers.handleTransaction) {
-              const newState = handlers.handleTransaction(transaction, this.value);
-              return new (this.constructor as any)(newState);
+        init: () =>
+          new (class extends PluginState<T> {
+            apply(transaction: Transaction): PluginState<T> {
+              if (handlers.handleTransaction) {
+                const newState = handlers.handleTransaction(
+                  transaction,
+                  this.value
+                );
+                return new (this.constructor as any)(newState);
+              }
+              return this;
             }
-            return this;
-          }
-          toJSON() { return this.value; }
-          static fromJSON(value: T) { return new (this as any)(value); }
-        })(initialState),
-        apply: (transaction, state) => state.apply(transaction)
+            toJSON() {
+              return this.value;
+            }
+            static fromJSON(value: T) {
+              return new (this as any)(value);
+            }
+          })(initialState),
+        apply: (transaction, state) => state.apply(transaction),
       },
-      decorations: handlers.createDecorations ? 
-        (calendarState, plugin) => {
-          const pluginState = plugin.getState(calendarState);
-          return pluginState ? handlers.createDecorations!(calendarState, pluginState.value) : new DecorationSet();
-        } : undefined,
-      props: {
-        handleDateClick: handlers.handleDateClick ? 
-          (date, event, calendarState, plugin) => {
+      decorations: handlers.createDecorations
+        ? (calendarState, plugin) => {
             const pluginState = plugin.getState(calendarState);
-            return pluginState ? handlers.handleDateClick!(date, event, pluginState.value) : false;
-          } : undefined
-      }
+            return pluginState
+              ? handlers.createDecorations!(calendarState, pluginState.value)
+              : new DecorationSet();
+          }
+        : undefined,
+      props: {
+        handleDateClick: handlers.handleDateClick
+          ? (date, event, calendarState, plugin) => {
+              const pluginState = plugin.getState(calendarState);
+              return pluginState
+                ? handlers.handleDateClick!(date, event, pluginState.value)
+                : false;
+            }
+          : undefined,
+      },
     });
   }
 
@@ -536,7 +590,7 @@ export class PluginFactory {
   static createCommandPlugin(key: string, commands: CommandMap): Plugin {
     return new Plugin({
       key,
-      commands: () => commands
+      commands: () => commands,
     });
   }
 
@@ -549,7 +603,7 @@ export class PluginFactory {
   ): Plugin {
     return new Plugin({
       key,
-      decorations: decorationFactory
+      decorations: decorationFactory,
     });
   }
 }

@@ -51,28 +51,36 @@ export class StateUpdater<T> {
   /**
    * 배열 요소 추가
    */
-  addToArray<K extends keyof T>(key: K, item: T[K] extends Array<infer U> ? U : never): T {
+  addToArray<K extends keyof T>(
+    key: K,
+    item: T[K] extends Array<infer U> ? U : never
+  ): T {
     if (!Array.isArray(this.currentValue[key])) {
       throw new Error(`Field ${String(key)} is not an array`);
     }
 
     return {
       ...this.currentValue,
-      [key]: [...(this.currentValue[key] as any), item]
+      [key]: [...(this.currentValue[key] as any), item],
     };
   }
 
   /**
    * 배열 요소 제거
    */
-  removeFromArray<K extends keyof T>(key: K, predicate: (item: any) => boolean): T {
+  removeFromArray<K extends keyof T>(
+    key: K,
+    predicate: (item: any) => boolean
+  ): T {
     if (!Array.isArray(this.currentValue[key])) {
       throw new Error(`Field ${String(key)} is not an array`);
     }
 
     return {
       ...this.currentValue,
-      [key]: (this.currentValue[key] as any).filter((item: any) => !predicate(item))
+      [key]: (this.currentValue[key] as any).filter(
+        (item: any) => !predicate(item)
+      ),
     };
   }
 
@@ -89,7 +97,7 @@ export class StateUpdater<T> {
 
     return {
       ...this.currentValue,
-      [key]: newMap
+      [key]: newMap,
     };
   }
 
@@ -106,7 +114,7 @@ export class StateUpdater<T> {
 
     return {
       ...this.currentValue,
-      [key]: newMap
+      [key]: newMap,
     };
   }
 
@@ -123,7 +131,11 @@ export class StateUpdater<T> {
 
     for (const key in source) {
       if (Object.prototype.hasOwnProperty.call(source, key)) {
-        if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+        if (
+          typeof source[key] === 'object' &&
+          source[key] !== null &&
+          !Array.isArray(source[key])
+        ) {
           result[key] = this.deepMerge(target[key], source[key]);
         } else {
           result[key] = source[key];
@@ -145,14 +157,17 @@ export class StateSerializer {
   static serialize(state: PluginState): any {
     return {
       className: state.constructor.name,
-      value: state.toJSON()
+      value: state.toJSON(),
     };
   }
 
   /**
    * JSON에서 PluginState로 역직렬화
    */
-  static deserialize(data: any, stateClasses: Map<string, typeof PluginState>): PluginState {
+  static deserialize(
+    data: any,
+    stateClasses: Map<string, typeof PluginState>
+  ): PluginState {
     const StateClass = stateClasses.get(data.className);
     if (!StateClass) {
       throw new Error(`Unknown PluginState class: ${data.className}`);
@@ -164,7 +179,10 @@ export class StateSerializer {
   /**
    * 전체 CalendarState 직렬화
    */
-  static serializeCalendarState(state: CalendarState, _stateClasses: Map<string, typeof PluginState>): any {
+  static serializeCalendarState(
+    state: CalendarState,
+    _stateClasses: Map<string, typeof PluginState>
+  ): any {
     const serializedPluginStates: Record<string, any> = {};
 
     for (const [pluginId, pluginState] of state.pluginStates) {
@@ -176,7 +194,7 @@ export class StateSerializer {
       viewType: state.viewType,
       timeRange: {
         start: state.timeRange.start.toISOString(),
-        end: state.timeRange.end.toISOString()
+        end: state.timeRange.end.toISOString(),
       },
       timezone: state.timezone,
       pluginStates: serializedPluginStates,
@@ -187,11 +205,19 @@ export class StateSerializer {
   /**
    * JSON에서 CalendarState로 역직렬화
    */
-  static deserializeCalendarState(data: any, stateClasses: Map<string, typeof PluginState>): Partial<CalendarState> {
+  static deserializeCalendarState(
+    data: any,
+    stateClasses: Map<string, typeof PluginState>
+  ): Partial<CalendarState> {
     const pluginStates = new Map<string, PluginState>();
 
-    for (const [pluginId, serializedState] of Object.entries(data.pluginStates)) {
-      pluginStates.set(pluginId, this.deserialize(serializedState, stateClasses));
+    for (const [pluginId, serializedState] of Object.entries(
+      data.pluginStates
+    )) {
+      pluginStates.set(
+        pluginId,
+        this.deserialize(serializedState, stateClasses)
+      );
     }
 
     return {
@@ -199,10 +225,10 @@ export class StateSerializer {
       viewType: data.viewType,
       timeRange: {
         start: new Date(data.timeRange.start),
-        end: new Date(data.timeRange.end)
+        end: new Date(data.timeRange.end),
       },
       timezone: data.timezone,
-      pluginStates
+      pluginStates,
     };
   }
 }
@@ -243,8 +269,15 @@ export class StateValidator {
     }
 
     // 필수 필드 검증
-    const requiredFields = ['currentDate', 'viewType', 'timeRange', 'days', 'pluginStates', 'timezone'];
-    
+    const requiredFields = [
+      'currentDate',
+      'viewType',
+      'timeRange',
+      'days',
+      'pluginStates',
+      'timezone',
+    ];
+
     for (const field of requiredFields) {
       if (!(field in state)) {
         throw new Error(`CalendarState missing required field: ${field}`);
@@ -288,7 +321,9 @@ export class ImmutableStateManager {
   static ensureImmutability<T>(originalState: T, newState: T): boolean {
     // 참조가 다른지 확인 (새로운 객체인지)
     if (originalState === newState) {
-      console.warn('State update did not create a new object - immutability may be violated');
+      console.warn(
+        'State update did not create a new object - immutability may be violated'
+      );
       return false;
     }
 
@@ -299,7 +334,10 @@ export class ImmutableStateManager {
    * 깊은 동결 (개발 환경에서만 사용)
    */
   static deepFreeze<T>(obj: T): T {
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+    if (
+      typeof process !== 'undefined' &&
+      process.env?.NODE_ENV === 'development'
+    ) {
       Object.freeze(obj);
 
       Object.getOwnPropertyNames(obj).forEach(property => {

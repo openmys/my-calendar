@@ -28,19 +28,19 @@ export interface LocalizedMessages {
   previousYear: string;
   selectDate: string;
   goToToday: string;
-  
+
   // 날짜/시간 관련
   weekdays: string[];
   weekdaysShort: string[];
   weekdaysMin: string[];
   months: string[];
   monthsShort: string[];
-  
+
   // 접근성 메시지
   dateSelected: (date: Date) => string;
   monthChanged: (month: string) => string;
   yearChanged: (year: number) => string;
-  
+
   // 이벤트 관련
   event: string;
   events: string;
@@ -48,14 +48,14 @@ export interface LocalizedMessages {
   addEvent: string;
   editEvent: string;
   deleteEvent: string;
-  
+
   // 시간 관련
   am: string;
   pm: string;
   hour: string;
   minute: string;
   allDay: string;
-  
+
   // 에러 메시지
   invalidDate: string;
   invalidRange: string;
@@ -133,7 +133,7 @@ class I18nPluginState extends PluginState<I18nState> {
   toJSON(): I18nState {
     return {
       ...this.value,
-      formatters: {} as any // 함수는 직렬화하지 않음
+      formatters: {} as any, // 함수는 직렬화하지 않음
     };
   }
 
@@ -145,7 +145,18 @@ class I18nPluginState extends PluginState<I18nState> {
 
   private isRTLLocale(locale: string): boolean {
     const rtlLocales = [
-      'ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi', 'arc', 'az', 'dv', 'ku', 'ckb'
+      'ar',
+      'he',
+      'fa',
+      'ur',
+      'ps',
+      'sd',
+      'yi',
+      'arc',
+      'az',
+      'dv',
+      'ku',
+      'ckb',
     ];
     const lang = locale.split('-')[0];
     return rtlLocales.includes(lang);
@@ -158,7 +169,7 @@ class I18nPluginState extends PluginState<I18nState> {
 
   private getDefaultMessages(locale: string): LocalizedMessages {
     const lang = locale.split('-')[0];
-    
+
     switch (lang) {
       case 'ko':
         return {
@@ -169,35 +180,70 @@ class I18nPluginState extends PluginState<I18nState> {
           previousYear: '이전 해',
           selectDate: '날짜 선택',
           goToToday: '오늘로 이동',
-          
-          weekdays: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+
+          weekdays: [
+            '일요일',
+            '월요일',
+            '화요일',
+            '수요일',
+            '목요일',
+            '금요일',
+            '토요일',
+          ],
           weekdaysShort: ['일', '월', '화', '수', '목', '금', '토'],
           weekdaysMin: ['일', '월', '화', '수', '목', '금', '토'],
-          months: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-          monthsShort: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
-          
-          dateSelected: (date) => `${date.toLocaleDateString('ko-KR')}이 선택되었습니다`,
-          monthChanged: (month) => `${month}로 이동했습니다`,
-          yearChanged: (year) => `${year}년으로 이동했습니다`,
-          
+          months: [
+            '1월',
+            '2월',
+            '3월',
+            '4월',
+            '5월',
+            '6월',
+            '7월',
+            '8월',
+            '9월',
+            '10월',
+            '11월',
+            '12월',
+          ],
+          monthsShort: [
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+            '11',
+            '12',
+          ],
+
+          dateSelected: date =>
+            `${date.toLocaleDateString('ko-KR')}이 선택되었습니다`,
+          monthChanged: month => `${month}로 이동했습니다`,
+          yearChanged: year => `${year}년으로 이동했습니다`,
+
           event: '일정',
           events: '일정들',
           noEvents: '일정 없음',
           addEvent: '일정 추가',
           editEvent: '일정 편집',
           deleteEvent: '일정 삭제',
-          
+
           am: '오전',
           pm: '오후',
           hour: '시',
           minute: '분',
           allDay: '종일',
-          
+
           invalidDate: '잘못된 날짜입니다',
           invalidRange: '잘못된 범위입니다',
-          eventConflict: '일정이 겹칩니다'
+          eventConflict: '일정이 겹칩니다',
         };
-        
+
       case 'ja':
         return {
           today: '今日',
@@ -207,35 +253,70 @@ class I18nPluginState extends PluginState<I18nState> {
           previousYear: '昨年',
           selectDate: '日付を選択',
           goToToday: '今日に移動',
-          
-          weekdays: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+
+          weekdays: [
+            '日曜日',
+            '月曜日',
+            '火曜日',
+            '水曜日',
+            '木曜日',
+            '金曜日',
+            '土曜日',
+          ],
           weekdaysShort: ['日', '月', '火', '水', '木', '金', '土'],
           weekdaysMin: ['日', '月', '火', '水', '木', '金', '土'],
-          months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-          monthsShort: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
-          
-          dateSelected: (date) => `${date.toLocaleDateString('ja-JP')}が選択されました`,
-          monthChanged: (month) => `${month}に移動しました`,
-          yearChanged: (year) => `${year}年に移動しました`,
-          
+          months: [
+            '1月',
+            '2月',
+            '3月',
+            '4月',
+            '5月',
+            '6月',
+            '7月',
+            '8月',
+            '9月',
+            '10月',
+            '11月',
+            '12月',
+          ],
+          monthsShort: [
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+            '11',
+            '12',
+          ],
+
+          dateSelected: date =>
+            `${date.toLocaleDateString('ja-JP')}が選択されました`,
+          monthChanged: month => `${month}に移動しました`,
+          yearChanged: year => `${year}年に移動しました`,
+
           event: 'イベント',
           events: 'イベント',
           noEvents: 'イベントなし',
           addEvent: 'イベント追加',
           editEvent: 'イベント編集',
           deleteEvent: 'イベント削除',
-          
+
           am: '午前',
           pm: '午後',
           hour: '時',
           minute: '分',
           allDay: '終日',
-          
+
           invalidDate: '無効な日付です',
           invalidRange: '無効な範囲です',
-          eventConflict: 'イベントが重複しています'
+          eventConflict: 'イベントが重複しています',
         };
-        
+
       case 'ar':
         return {
           today: 'اليوم',
@@ -245,35 +326,69 @@ class I18nPluginState extends PluginState<I18nState> {
           previousYear: 'السنة السابقة',
           selectDate: 'اختر التاريخ',
           goToToday: 'اذهب إلى اليوم',
-          
-          weekdays: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+
+          weekdays: [
+            'الأحد',
+            'الإثنين',
+            'الثلاثاء',
+            'الأربعاء',
+            'الخميس',
+            'الجمعة',
+            'السبت',
+          ],
           weekdaysShort: ['أح', 'إث', 'ثل', 'أر', 'خم', 'جم', 'سب'],
           weekdaysMin: ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'],
-          months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
-          monthsShort: ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'أغس', 'سبت', 'أكت', 'نوف', 'ديس'],
-          
-          dateSelected: (date) => `تم اختيار ${date.toLocaleDateString('ar')}`,
-          monthChanged: (month) => `تم الانتقال إلى ${month}`,
-          yearChanged: (year) => `تم الانتقال إلى ${year}`,
-          
+          months: [
+            'يناير',
+            'فبراير',
+            'مارس',
+            'أبريل',
+            'مايو',
+            'يونيو',
+            'يوليو',
+            'أغسطس',
+            'سبتمبر',
+            'أكتوبر',
+            'نوفمبر',
+            'ديسمبر',
+          ],
+          monthsShort: [
+            'ينا',
+            'فبر',
+            'مار',
+            'أبر',
+            'ماي',
+            'يون',
+            'يول',
+            'أغس',
+            'سبت',
+            'أكت',
+            'نوف',
+            'ديس',
+          ],
+
+          dateSelected: date => `تم اختيار ${date.toLocaleDateString('ar')}`,
+          monthChanged: month => `تم الانتقال إلى ${month}`,
+          yearChanged: year => `تم الانتقال إلى ${year}`,
+
           event: 'حدث',
           events: 'أحداث',
           noEvents: 'لا توجد أحداث',
           addEvent: 'إضافة حدث',
           editEvent: 'تعديل حدث',
           deleteEvent: 'حذف حدث',
-          
+
           am: 'ص',
           pm: 'م',
           hour: 'ساعة',
           minute: 'دقيقة',
           allDay: 'طوال اليوم',
-          
+
           invalidDate: 'تاريخ غير صحيح',
           invalidRange: 'نطاق غير صحيح',
-          eventConflict: 'تعارض في الأحداث'
+          eventConflict: 'تعارض في الأحداث',
         };
-        
+
       default: // English
         return {
           today: 'Today',
@@ -283,33 +398,67 @@ class I18nPluginState extends PluginState<I18nState> {
           previousYear: 'Previous Year',
           selectDate: 'Select Date',
           goToToday: 'Go to Today',
-          
-          weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+
+          weekdays: [
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+          ],
           weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
           weekdaysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-          months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-          monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-          
-          dateSelected: (date) => `Selected ${date.toLocaleDateString('en-US')}`,
-          monthChanged: (month) => `Moved to ${month}`,
-          yearChanged: (year) => `Moved to ${year}`,
-          
+          months: [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+          ],
+          monthsShort: [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+          ],
+
+          dateSelected: date => `Selected ${date.toLocaleDateString('en-US')}`,
+          monthChanged: month => `Moved to ${month}`,
+          yearChanged: year => `Moved to ${year}`,
+
           event: 'Event',
           events: 'Events',
           noEvents: 'No Events',
           addEvent: 'Add Event',
           editEvent: 'Edit Event',
           deleteEvent: 'Delete Event',
-          
+
           am: 'AM',
           pm: 'PM',
           hour: 'Hour',
           minute: 'Minute',
           allDay: 'All Day',
-          
+
           invalidDate: 'Invalid Date',
           invalidRange: 'Invalid Range',
-          eventConflict: 'Event Conflict'
+          eventConflict: 'Event Conflict',
         };
     }
   }
@@ -330,53 +479,68 @@ export class DateTimeFormatter {
 
   format(date: Date, options?: Intl.DateTimeFormatOptions): string {
     const key = `${this.locale}-${this.timeZone}-${JSON.stringify(options)}`;
-    
+
     if (!this.formatters.has(key)) {
-      this.formatters.set(key, new Intl.DateTimeFormat(this.locale, {
-        timeZone: this.timeZone,
-        ...options
-      }));
+      this.formatters.set(
+        key,
+        new Intl.DateTimeFormat(this.locale, {
+          timeZone: this.timeZone,
+          ...options,
+        })
+      );
     }
-    
+
     return this.formatters.get(key)!.format(date);
   }
 
-  formatRange(startDate: Date, endDate: Date, options?: Intl.DateTimeFormatOptions): string {
+  formatRange(
+    startDate: Date,
+    endDate: Date,
+    options?: Intl.DateTimeFormatOptions
+  ): string {
     const key = `${this.locale}-${this.timeZone}-range-${JSON.stringify(options)}`;
-    
+
     if (!this.formatters.has(key)) {
-      this.formatters.set(key, new Intl.DateTimeFormat(this.locale, {
-        timeZone: this.timeZone,
-        ...options
-      }));
+      this.formatters.set(
+        key,
+        new Intl.DateTimeFormat(this.locale, {
+          timeZone: this.timeZone,
+          ...options,
+        })
+      );
     }
-    
+
     const formatter = this.formatters.get(key)!;
-    return (formatter as any).formatRange?.(startDate, endDate) || 
-           `${formatter.format(startDate)} - ${formatter.format(endDate)}`;
+    return (
+      (formatter as any).formatRange?.(startDate, endDate) ||
+      `${formatter.format(startDate)} - ${formatter.format(endDate)}`
+    );
   }
 
-  getWeekdays(format: 'long' | 'short' | 'narrow' = 'short', firstDay: number = 0): string[] {
+  getWeekdays(
+    format: 'long' | 'short' | 'narrow' = 'short',
+    firstDay: number = 0
+  ): string[] {
     const date = new Date(2023, 0, 1); // 2023년 1월 1일 (일요일)
     const days: string[] = [];
-    
+
     for (let i = 0; i < 7; i++) {
       const dayIndex = (firstDay + i) % 7;
       date.setDate(1 + dayIndex);
       days.push(this.format(date, { weekday: format }));
     }
-    
+
     return days;
   }
 
   getMonths(format: 'long' | 'short' | 'narrow' = 'long'): string[] {
     const months: string[] = [];
-    
+
     for (let i = 0; i < 12; i++) {
       const date = new Date(2023, i, 1);
       months.push(this.format(date, { month: format }));
     }
-    
+
     return months;
   }
 }
@@ -386,13 +550,15 @@ export class DateTimeFormatter {
  */
 export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
   // 기본 로케일 감지
-  const defaultLocale = typeof navigator !== 'undefined' 
-    ? navigator.language ?? 'en-US'
-    : 'en-US';
-    
-  const defaultTimeZone = typeof Intl !== 'undefined'
-    ? Intl.DateTimeFormat().resolvedOptions().timeZone
-    : 'UTC';
+  const defaultLocale =
+    typeof navigator !== 'undefined'
+      ? (navigator.language ?? 'en-US')
+      : 'en-US';
+
+  const defaultTimeZone =
+    typeof Intl !== 'undefined'
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : 'UTC';
 
   const defaultOptions: Required<I18nOptions> = {
     locale: defaultLocale,
@@ -402,7 +568,7 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
     timeFormat: '24h',
     rtl: false,
     calendarSystem: 'gregorian',
-    numberSystem: 'latn'
+    numberSystem: 'latn',
   };
 
   const finalOptions = { ...defaultOptions, ...options };
@@ -424,18 +590,20 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
           numberSystem: finalOptions.numberSystem,
           messages: {} as LocalizedMessages, // loadMessages에서 채워짐
           formatters: new Map(),
-          options: finalOptions
+          options: finalOptions,
         });
-        
+
         // 메시지 로드
-        (initialState as any).value.messages = (initialState as any).loadMessages(finalOptions.locale);
-        
+        (initialState as any).value.messages = (
+          initialState as any
+        ).loadMessages(finalOptions.locale);
+
         return initialState;
       },
-      apply: (transaction, state) => state.apply(transaction)
+      apply: (transaction, state) => state.apply(transaction),
     },
 
-    commands: (_plugin) => ({
+    commands: _plugin => ({
       changeLocale: (locale: string) => (_state: any, dispatch?: any) => {
         if (dispatch) {
           dispatch(transactions.custom('I18N_CHANGE_LOCALE', { locale }));
@@ -457,19 +625,22 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
         return true;
       },
 
-      setDateFormat: (format: Intl.DateTimeFormatOptions) => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('I18N_SET_DATE_FORMAT', { format }));
-        }
-        return true;
-      },
+      setDateFormat:
+        (format: Intl.DateTimeFormatOptions) =>
+        (_state: any, dispatch?: any) => {
+          if (dispatch) {
+            dispatch(transactions.custom('I18N_SET_DATE_FORMAT', { format }));
+          }
+          return true;
+        },
 
-      setTimeFormat: (format: '12h' | '24h') => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('I18N_SET_TIME_FORMAT', { format }));
-        }
-        return true;
-      }
+      setTimeFormat:
+        (format: '12h' | '24h') => (_state: any, dispatch?: any) => {
+          if (dispatch) {
+            dispatch(transactions.custom('I18N_SET_TIME_FORMAT', { format }));
+          }
+          return true;
+        },
     }),
 
     decorations: (state, plugin) => {
@@ -547,7 +718,12 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
         return i18nState?.value.messages;
       },
 
-      formatDate: (state, plugin, date: Date, options?: Intl.DateTimeFormatOptions) => {
+      formatDate: (
+        state,
+        plugin,
+        date: Date,
+        options?: Intl.DateTimeFormatOptions
+      ) => {
         const i18nState = plugin.getState(state);
         if (!i18nState) return date.toLocaleDateString();
 
@@ -555,7 +731,7 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
           i18nState.value.locale,
           i18nState.value.timeZone
         );
-        
+
         return formatter.format(date, options ?? i18nState.value.dateFormat);
       },
 
@@ -567,13 +743,13 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
           i18nState.value.locale,
           i18nState.value.timeZone
         );
-        
+
         const options: Intl.DateTimeFormatOptions = {
           hour: 'numeric',
           minute: '2-digit',
-          hour12: i18nState.value.timeFormat === '12h'
+          hour12: i18nState.value.timeFormat === '12h',
         };
-        
+
         return formatter.format(date, options);
       },
 
@@ -587,34 +763,53 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
           i18nState.value.locale,
           i18nState.value.timeZone
         );
-        
-        return formatter.formatRange(startDate, endDate, i18nState.value.dateFormat);
+
+        return formatter.formatRange(
+          startDate,
+          endDate,
+          i18nState.value.dateFormat
+        );
       },
 
       getWeekdays: (state, plugin, format?: 'long' | 'short' | 'narrow') => {
         const i18nState = plugin.getState(state);
-        if (!i18nState) return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        if (!i18nState)
+          return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
         const formatter = new DateTimeFormatter(
           i18nState.value.locale,
           i18nState.value.timeZone
         );
-        
+
         return formatter.getWeekdays(format, i18nState.value.firstDayOfWeek);
       },
 
       getMonths: (state, plugin, format?: 'long' | 'short' | 'narrow') => {
         const i18nState = plugin.getState(state);
-        if (!i18nState) return ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        if (!i18nState)
+          return [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+          ];
 
         const formatter = new DateTimeFormatter(
           i18nState.value.locale,
           i18nState.value.timeZone
         );
-        
+
         return formatter.getMonths(format);
-      }
-    }
+      },
+    },
   };
 
   return new Plugin(spec);
@@ -653,7 +848,7 @@ export class GregorianCalendar implements CalendarSystem {
     return {
       year: date.getFullYear(),
       month: date.getMonth() + 1,
-      day: date.getDate()
+      day: date.getDate(),
     };
   }
 
@@ -668,7 +863,7 @@ export class GregorianCalendar implements CalendarSystem {
   }
 
   isLeapYear(year: number): boolean {
-    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   }
 
   getDaysInMonth(year: number, month: number): number {
@@ -715,15 +910,88 @@ export const I18nUtils = {
   getFirstDayOfWeek(locale: string): number {
     // ISO 국가 코드 기반 첫 번째 요일 (0 = 일요일, 1 = 월요일)
     const mondayFirst = [
-      'AD', 'AI', 'AL', 'AM', 'AN', 'AT', 'AX', 'AZ', 'BA', 'BE', 'BG', 'BM', 'BN', 'BY', 'CH',
-      'CL', 'CM', 'CR', 'CY', 'CZ', 'DE', 'DK', 'EC', 'EE', 'ES', 'FI', 'FJ', 'FO', 'FR', 'GB',
-      'GE', 'GF', 'GP', 'GR', 'GT', 'GU', 'HR', 'HU', 'IS', 'IT', 'KG', 'KZ', 'LB', 'LI', 'LK',
-      'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MH', 'MK', 'MN', 'MQ', 'MT', 'MY', 'NL', 'NO', 'NZ',
-      'PL', 'PT', 'RE', 'RO', 'RS', 'RU', 'SE', 'SI', 'SK', 'SM', 'TJ', 'TM', 'TR', 'UA', 'UY',
-      'UZ', 'VA', 'VN', 'XK'
+      'AD',
+      'AI',
+      'AL',
+      'AM',
+      'AN',
+      'AT',
+      'AX',
+      'AZ',
+      'BA',
+      'BE',
+      'BG',
+      'BM',
+      'BN',
+      'BY',
+      'CH',
+      'CL',
+      'CM',
+      'CR',
+      'CY',
+      'CZ',
+      'DE',
+      'DK',
+      'EC',
+      'EE',
+      'ES',
+      'FI',
+      'FJ',
+      'FO',
+      'FR',
+      'GB',
+      'GE',
+      'GF',
+      'GP',
+      'GR',
+      'GT',
+      'GU',
+      'HR',
+      'HU',
+      'IS',
+      'IT',
+      'KG',
+      'KZ',
+      'LB',
+      'LI',
+      'LK',
+      'LT',
+      'LU',
+      'LV',
+      'MC',
+      'MD',
+      'ME',
+      'MH',
+      'MK',
+      'MN',
+      'MQ',
+      'MT',
+      'MY',
+      'NL',
+      'NO',
+      'NZ',
+      'PL',
+      'PT',
+      'RE',
+      'RO',
+      'RS',
+      'RU',
+      'SE',
+      'SI',
+      'SK',
+      'SM',
+      'TJ',
+      'TM',
+      'TR',
+      'UA',
+      'UY',
+      'UZ',
+      'VA',
+      'VN',
+      'XK',
     ];
-    
+
     const country = locale.split('-')[1];
     return country && mondayFirst.includes(country) ? 1 : 0;
-  }
+  },
 };

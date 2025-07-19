@@ -9,36 +9,36 @@ export default defineConfig(({ mode }) => ({
     dts({
       insertTypesEntry: true,
       include: ['src/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx']
-    })
+      exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    }),
   ],
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
-    }
+      '@': resolve(__dirname, 'src'),
+    },
   },
   build: {
     lib: {
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
-        'react/index': resolve(__dirname, 'src/react/index.ts')
+        'react/index': resolve(__dirname, 'src/react/index.ts'),
       },
-      formats: ['es']
+      formats: ['es'],
     },
     rollupOptions: {
       external: ['react', 'react-dom'],
       output: {
         globals: {
           react: 'React',
-          'react-dom': 'ReactDOM'
-        }
-      }
+          'react-dom': 'ReactDOM',
+        },
+      },
     },
     minify: mode === 'production',
     sourcemap: mode !== 'production',
-    target: 'es2020'
+    target: 'es2020',
   },
   define: {
-    'process.env.NODE_ENV': JSON.stringify(mode)
-  }
+    'process.env.NODE_ENV': JSON.stringify(mode),
+  },
 }));

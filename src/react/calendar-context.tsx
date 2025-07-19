@@ -7,7 +7,11 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { CalendarView } from '@/core/calendar-view';
 import { CalendarState } from '@/types';
-import { useCalendar, UseCalendarOptions, UseCalendarReturn } from './use-calendar';
+import {
+  useCalendar,
+  UseCalendarOptions,
+  UseCalendarReturn,
+} from './use-calendar';
 
 export interface CalendarContextValue extends UseCalendarReturn {
   // 추가적인 컨텍스트 관련 기능들
@@ -42,11 +46,13 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
  */
 export function useCalendarContext(): CalendarContextValue {
   const context = useContext(CalendarContext);
-  
+
   if (!context) {
-    throw new Error('useCalendarContext must be used within a CalendarProvider');
+    throw new Error(
+      'useCalendarContext must be used within a CalendarProvider'
+    );
   }
-  
+
   return context;
 }
 
@@ -59,7 +65,7 @@ export function withCalendar<P extends object>(
 ): React.FC<P> {
   return function WithCalendarComponent(props: P) {
     const calendar = useCalendarContext();
-    
+
     return <Component {...props} calendar={calendar} />;
   };
 }
@@ -72,7 +78,9 @@ export interface CalendarConsumerProps {
   children: (calendar: CalendarContextValue) => ReactNode;
 }
 
-export const CalendarConsumer: React.FC<CalendarConsumerProps> = ({ children }) => {
+export const CalendarConsumer: React.FC<CalendarConsumerProps> = ({
+  children,
+}) => {
   const calendar = useCalendarContext();
   return <>{children(calendar)}</>;
 };
@@ -110,7 +118,7 @@ export function useCalendarInstance(): CalendarView | null {
  */
 export function useCalendarPlugin(pluginKey: string) {
   const { state, query } = useCalendarContext();
-  
+
   const pluginState = React.useMemo(() => {
     if (!state || !state.pluginStates.has(pluginKey)) {
       return null;
@@ -118,13 +126,16 @@ export function useCalendarPlugin(pluginKey: string) {
     return state.pluginStates.get(pluginKey) as any;
   }, [state, pluginKey]);
 
-  const queryPlugin = React.useCallback((queryName: string, ...args: any[]): any => {
-    return query(pluginKey, queryName, ...args);
-  }, [query, pluginKey]);
+  const queryPlugin = React.useCallback(
+    (queryName: string, ...args: any[]): any => {
+      return query(pluginKey, queryName, ...args);
+    },
+    [query, pluginKey]
+  );
 
   return {
     pluginState: pluginState?.value || null,
-    query: queryPlugin
+    query: queryPlugin,
   };
 }
 
@@ -137,7 +148,9 @@ interface CalendarStateContextValue {
   calendar: CalendarView | null;
 }
 
-const CalendarStateContext = createContext<CalendarStateContextValue | null>(null);
+const CalendarStateContext = createContext<CalendarStateContextValue | null>(
+  null
+);
 
 export interface CalendarStateProviderProps {
   calendar: CalendarView | null;
@@ -146,7 +159,7 @@ export interface CalendarStateProviderProps {
 
 export const CalendarStateProvider: React.FC<CalendarStateProviderProps> = ({
   calendar,
-  children
+  children,
 }) => {
   const [state, setState] = React.useState<CalendarState | null>(
     calendar ? calendar.getState() : null
@@ -177,10 +190,12 @@ export const CalendarStateProvider: React.FC<CalendarStateProviderProps> = ({
  */
 export function useCalendarStateContext(): CalendarStateContextValue {
   const context = useContext(CalendarStateContext);
-  
+
   if (!context) {
-    throw new Error('useCalendarStateContext must be used within a CalendarStateProvider');
+    throw new Error(
+      'useCalendarStateContext must be used within a CalendarStateProvider'
+    );
   }
-  
+
   return context;
 }

@@ -3,7 +3,12 @@
  * 캘린더의 기본 React 컴포넌트
  */
 
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, {
+  useRef,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import { CalendarView } from '@/core/calendar-view';
 import { useCalendar, UseCalendarOptions } from './use-calendar';
 import { CalendarState } from '@/types';
@@ -48,18 +53,15 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
   const previousStateRef = useRef<CalendarState | null>(null);
 
   // useCalendar 훅 사용
-  const {
-    state,
-    calendar,
-    execCommand,
-    query,
-    isReady
-  } = useCalendar({
+  const { state, calendar, execCommand, query, isReady } = useCalendar({
     ...calendarOptions,
-    onStateChange: (newState) => {
+    onStateChange: newState => {
       // 월 변경 감지
       const prevState = previousStateRef.current;
-      if (prevState && prevState.currentDate.getMonth() !== newState.currentDate.getMonth()) {
+      if (
+        prevState &&
+        prevState.currentDate.getMonth() !== newState.currentDate.getMonth()
+      ) {
         onMonthChange?.(newState.currentDate);
       }
 
@@ -71,7 +73,7 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
       previousStateRef.current = newState;
       onStateChange?.(newState);
     },
-    onTransaction
+    onTransaction,
   });
 
   // DOM 연결
@@ -80,7 +82,10 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
 
     // 캘린더의 DOM을 컨테이너에 연결
     const calendarElement = (calendar as any).element;
-    if (calendarElement && containerRef.current !== calendarElement.parentElement) {
+    if (
+      calendarElement &&
+      containerRef.current !== calendarElement.parentElement
+    ) {
       containerRef.current.appendChild(calendarElement);
     }
 
@@ -97,7 +102,7 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     const handleClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       const dateElement = target.closest('[data-date]') as HTMLElement;
-      
+
       if (dateElement && onDateClick) {
         const dateStr = dateElement.getAttribute('data-date');
         if (dateStr) {
@@ -110,7 +115,7 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     const handleDoubleClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       const dateElement = target.closest('[data-date]') as HTMLElement;
-      
+
       if (dateElement && onDateDoubleClick) {
         const dateStr = dateElement.getAttribute('data-date');
         if (dateStr) {
@@ -123,7 +128,7 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     const handleMouseOver = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       const dateElement = target.closest('[data-date]') as HTMLElement;
-      
+
       if (dateElement && onDateHover) {
         const dateStr = dateElement.getAttribute('data-date');
         if (dateStr) {
@@ -145,21 +150,27 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
   }, [onDateClick, onDateDoubleClick, onDateHover]);
 
   // Ref 연결
-  useImperativeHandle(ref, () => ({
-    getCalendar: () => calendar,
-    getState: () => state,
-    execCommand,
-    query
-  }), [calendar, state, execCommand, query]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      getCalendar: () => calendar,
+      getState: () => state,
+      execCommand,
+      query,
+    }),
+    [calendar, state, execCommand, query]
+  );
 
-  const combinedClassName = ['my-calendar', className].filter(Boolean).join(' ');
+  const combinedClassName = ['my-calendar', className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
       ref={containerRef}
       className={combinedClassName}
       style={style}
-      data-testid="calendar"
+      data-testid='calendar'
     />
   );
 });
@@ -191,7 +202,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   showToday = true,
   showNavigation = true,
   format = 'long',
-  className = ''
+  className = '',
 }) => {
   const handlePrevious = () => {
     if (onPrevious) {
@@ -219,14 +230,14 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   const formatDate = (date: Date) => {
     if (format === 'short') {
-      return date.toLocaleDateString('ko-KR', { 
-        year: 'numeric', 
-        month: 'short' 
+      return date.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'short',
       });
     }
-    return date.toLocaleDateString('ko-KR', { 
-      year: 'numeric', 
-      month: 'long' 
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
     });
   };
 
@@ -235,35 +246,33 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   return (
     <div className={`calendar-header ${className}`}>
       {showNavigation && (
-        <button 
-          type="button"
-          className="calendar-nav-button calendar-prev"
+        <button
+          type='button'
+          className='calendar-nav-button calendar-prev'
           onClick={handlePrevious}
-          aria-label="이전 달"
+          aria-label='이전 달'
         >
           ‹
         </button>
       )}
-      
-      <h2 className="calendar-title">
-        {formatDate(state.currentDate)}
-      </h2>
-      
+
+      <h2 className='calendar-title'>{formatDate(state.currentDate)}</h2>
+
       {showNavigation && (
-        <button 
-          type="button"
-          className="calendar-nav-button calendar-next"
+        <button
+          type='button'
+          className='calendar-nav-button calendar-next'
           onClick={handleNext}
-          aria-label="다음 달"
+          aria-label='다음 달'
         >
           ›
         </button>
       )}
-      
+
       {showToday && (
-        <button 
-          type="button"
-          className="calendar-today-button"
+        <button
+          type='button'
+          className='calendar-today-button'
           onClick={handleToday}
         >
           오늘
@@ -290,7 +299,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onDateClick,
   className = '',
   showWeekdays = true,
-  weekdayFormat = 'short'
+  weekdayFormat = 'short',
 }) => {
   if (!state) return null;
 
@@ -314,26 +323,24 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   return (
     <div className={`calendar-grid ${className}`}>
       {showWeekdays && (
-        <div className="calendar-weekdays">
+        <div className='calendar-weekdays'>
           {getWeekdayLabels().map((weekday, index) => (
-            <div key={index} className="calendar-weekday">
+            <div key={index} className='calendar-weekday'>
               {weekday}
             </div>
           ))}
         </div>
       )}
-      
-      <div className="calendar-days">
-        {state.days.map((day) => (
+
+      <div className='calendar-days'>
+        {state.days.map(day => (
           <div
             key={day.date.toISOString()}
             className={`calendar-day ${day.isToday ? 'today' : ''} ${day.isWeekend ? 'weekend' : ''}`}
             onClick={() => handleDateClick(day.date)}
             data-date={day.date.toISOString()}
           >
-            <span className="calendar-day-number">
-              {day.date.getDate()}
-            </span>
+            <span className='calendar-day-number'>{day.date.getDate()}</span>
           </div>
         ))}
       </div>

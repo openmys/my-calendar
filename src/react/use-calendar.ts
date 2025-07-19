@@ -8,7 +8,8 @@ import { CalendarView, CalendarViewOptions } from '@/core/calendar-view';
 import { CalendarState, Transaction } from '@/types';
 import { Plugin } from '@/core/plugin';
 
-export interface UseCalendarOptions extends Omit<CalendarViewOptions, 'plugins'> {
+export interface UseCalendarOptions
+  extends Omit<CalendarViewOptions, 'plugins'> {
   plugins?: Plugin[];
   onStateChange?: (state: CalendarState) => void;
   onTransaction?: (transaction: Transaction) => void;
@@ -30,7 +31,9 @@ export interface UseCalendarReturn {
 /**
  * useCalendar Hook
  */
-export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn {
+export function useCalendar(
+  options: UseCalendarOptions = {}
+): UseCalendarReturn {
   const [state, setState] = useState<CalendarState | null>(null);
   const [isReady, setIsReady] = useState(false);
   const calendarRef = useRef<CalendarView | null>(null);
@@ -56,13 +59,13 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
     setIsReady(true);
 
     // 상태 변경 리스너 등록
-    const unsubscribeState = calendar.onStateChange((newState) => {
+    const unsubscribeState = calendar.onStateChange(newState => {
       setState(newState);
       options.onStateChange?.(newState);
     });
 
     // 트랜잭션 리스너 등록
-    const unsubscribeTransaction = calendar.onTransaction((transaction) => {
+    const unsubscribeTransaction = calendar.onTransaction(transaction => {
       options.onTransaction?.(transaction);
     });
 
@@ -78,16 +81,22 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
   }, [memoizedOptions]);
 
   // 커맨드 실행 함수
-  const execCommand = useCallback((commandName: string, ...args: any[]): boolean => {
-    if (!calendarRef.current) return false;
-    return calendarRef.current.execCommand(commandName, ...args);
-  }, []);
+  const execCommand = useCallback(
+    (commandName: string, ...args: any[]): boolean => {
+      if (!calendarRef.current) return false;
+      return calendarRef.current.execCommand(commandName, ...args);
+    },
+    []
+  );
 
   // 쿼리 함수
-  const query = useCallback((pluginKey: string, queryName: string, ...args: any[]): any => {
-    if (!calendarRef.current) return undefined;
-    return calendarRef.current.query(pluginKey, queryName, ...args);
-  }, []);
+  const query = useCallback(
+    (pluginKey: string, queryName: string, ...args: any[]): any => {
+      if (!calendarRef.current) return undefined;
+      return calendarRef.current.query(pluginKey, queryName, ...args);
+    },
+    []
+  );
 
   // 플러그인 추가
   const addPlugin = useCallback((plugin: Plugin): void => {
@@ -129,7 +138,7 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
     undo,
     redo,
     render,
-    isReady
+    isReady,
   };
 }
 
@@ -162,7 +171,7 @@ export function useCalendarRef(options: UseCalendarOptions = {}) {
   return {
     elementRef,
     calendar,
-    state
+    state,
   };
 }
 
@@ -171,19 +180,25 @@ export function useCalendarRef(options: UseCalendarOptions = {}) {
  * 캘린더 커맨드만 사용하는 경량 훅
  */
 export function useCalendarCommands(calendar: CalendarView | null) {
-  const execCommand = useCallback((commandName: string, ...args: any[]): boolean => {
-    if (!calendar) return false;
-    return calendar.execCommand(commandName, ...args);
-  }, [calendar]);
+  const execCommand = useCallback(
+    (commandName: string, ...args: any[]): boolean => {
+      if (!calendar) return false;
+      return calendar.execCommand(commandName, ...args);
+    },
+    [calendar]
+  );
 
-  const query = useCallback((pluginKey: string, queryName: string, ...args: any[]): any => {
-    if (!calendar) return undefined;
-    return calendar.query(pluginKey, queryName, ...args);
-  }, [calendar]);
+  const query = useCallback(
+    (pluginKey: string, queryName: string, ...args: any[]): any => {
+      if (!calendar) return undefined;
+      return calendar.query(pluginKey, queryName, ...args);
+    },
+    [calendar]
+  );
 
   return {
     execCommand,
-    query
+    query,
   };
 }
 
@@ -191,7 +206,9 @@ export function useCalendarCommands(calendar: CalendarView | null) {
  * useCalendarState Hook
  * 캘린더 상태만 구독하는 훅
  */
-export function useCalendarState(calendar: CalendarView | null): CalendarState | null {
+export function useCalendarState(
+  calendar: CalendarView | null
+): CalendarState | null {
   const [state, setState] = useState<CalendarState | null>(
     calendar ? calendar.getState() : null
   );
@@ -218,7 +235,7 @@ export function useCalendarPlugin(
   pluginKey: string
 ) {
   const state = useCalendarState(calendar);
-  
+
   const pluginState = useMemo(() => {
     if (!state || !state.pluginStates.has(pluginKey)) {
       return null;
@@ -226,13 +243,16 @@ export function useCalendarPlugin(
     return state.pluginStates.get(pluginKey) as any;
   }, [state, pluginKey]);
 
-  const query = useCallback((queryName: string, ...args: any[]): any => {
-    if (!calendar) return undefined;
-    return calendar.query(pluginKey, queryName, ...args);
-  }, [calendar, pluginKey]);
+  const query = useCallback(
+    (queryName: string, ...args: any[]): any => {
+      if (!calendar) return undefined;
+      return calendar.query(pluginKey, queryName, ...args);
+    },
+    [calendar, pluginKey]
+  );
 
   return {
     pluginState: pluginState?.value || null,
-    query
+    query,
   };
 }

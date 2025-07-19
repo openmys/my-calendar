@@ -37,7 +37,9 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
       case 'A11Y_FOCUS_DATE':
         newValue.focusedDate = new Date(transaction.payload.date);
         if (newValue.options.announceNavigations) {
-          newValue.announcement = this.createDateAnnouncement(newValue.focusedDate);
+          newValue.announcement = this.createDateAnnouncement(
+            newValue.focusedDate
+          );
           newValue.announcementType = 'polite';
         }
         break;
@@ -57,7 +59,10 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
         break;
 
       case 'A11Y_ADD_DESCRIPTION':
-        newValue.describedBy.set(transaction.payload.id, transaction.payload.description);
+        newValue.describedBy.set(
+          transaction.payload.id,
+          transaction.payload.description
+        );
         break;
 
       case 'A11Y_REMOVE_DESCRIPTION':
@@ -65,7 +70,10 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
         break;
 
       case 'A11Y_SET_OPTIONS':
-        newValue.options = { ...newValue.options, ...transaction.payload.options };
+        newValue.options = {
+          ...newValue.options,
+          ...transaction.payload.options,
+        };
         break;
 
       // 다른 플러그인의 이벤트에 반응
@@ -73,7 +81,10 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
       case 'RANGE_SELECT_RANGE':
         if (newValue.options.announceSelections) {
           const date = transaction.payload.date ?? transaction.payload.start;
-          newValue.announcement = this.createSelectionAnnouncement(date, transaction.payload);
+          newValue.announcement = this.createSelectionAnnouncement(
+            date,
+            transaction.payload
+          );
           newValue.announcementType = 'assertive';
         }
         break;
@@ -85,7 +96,7 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
   toJSON(): AccessibilityState {
     return {
       ...this.value,
-      describedBy: Object.fromEntries(this.value.describedBy) as any
+      describedBy: Object.fromEntries(this.value.describedBy) as any,
     };
   }
 
@@ -100,10 +111,10 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
 
   private createDateAnnouncement(date: Date): string {
     const dayName = date.toLocaleDateString('ko-KR', { weekday: 'long' });
-    const dateStr = date.toLocaleDateString('ko-KR', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const dateStr = date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
     return `${dayName}, ${dateStr}로 이동했습니다`;
   }
@@ -125,14 +136,16 @@ class AccessibilityPluginState extends PluginState<AccessibilityState> {
 /**
  * Accessibility Plugin 생성 함수
  */
-export function createAccessibilityPlugin(options: AccessibilityOptions = {}): Plugin<AccessibilityState> {
+export function createAccessibilityPlugin(
+  options: AccessibilityOptions = {}
+): Plugin<AccessibilityState> {
   const defaultOptions: AccessibilityOptions = {
     ariaLive: 'polite',
     announceSelections: true,
     announceNavigations: true,
     keyboardNavigation: true,
     focusManagement: true,
-    screenReaderSupport: true
+    screenReaderSupport: true,
   };
 
   const finalOptions = { ...defaultOptions, ...options };
@@ -142,18 +155,19 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
     priority: 1000, // 높은 우선순위로 다른 플러그인보다 먼저 처리
 
     state: {
-      init: () => new AccessibilityPluginState({
-        focusedDate: null,
-        announcement: null,
-        announcementType: null,
-        navigationMode: 'grid',
-        describedBy: new Map(),
-        options: finalOptions
-      }),
-      apply: (transaction, state) => state.apply(transaction)
+      init: () =>
+        new AccessibilityPluginState({
+          focusedDate: null,
+          announcement: null,
+          announcementType: null,
+          navigationMode: 'grid',
+          describedBy: new Map(),
+          options: finalOptions,
+        }),
+      apply: (transaction, state) => state.apply(transaction),
     },
 
-    commands: (_plugin) => ({
+    commands: _plugin => ({
       focusDate: (date: Date) => (_state: any, dispatch?: any) => {
         if (dispatch) {
           dispatch(transactions.custom('A11Y_FOCUS_DATE', { date }));
@@ -161,7 +175,8 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
         return true;
       },
 
-      announce: (message: string, type: 'polite' | 'assertive' = 'polite') => 
+      announce:
+        (message: string, type: 'polite' | 'assertive' = 'polite') =>
         (_state: any, dispatch?: any) => {
           if (dispatch) {
             dispatch(transactions.custom('A11Y_ANNOUNCE', { message, type }));
@@ -176,7 +191,8 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
         return true;
       },
 
-      setNavigationMode: (mode: 'grid' | 'list' | 'timeline') => 
+      setNavigationMode:
+        (mode: 'grid' | 'list' | 'timeline') =>
         (_state: any, dispatch?: any) => {
           if (dispatch) {
             dispatch(transactions.custom('A11Y_SET_NAVIGATION_MODE', { mode }));
@@ -184,13 +200,15 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
           return true;
         },
 
-      addDescription: (id: string, description: string) => 
-        (_state: any, dispatch?: any) => {
+      addDescription:
+        (id: string, description: string) => (_state: any, dispatch?: any) => {
           if (dispatch) {
-            dispatch(transactions.custom('A11Y_ADD_DESCRIPTION', { id, description }));
+            dispatch(
+              transactions.custom('A11Y_ADD_DESCRIPTION', { id, description })
+            );
           }
           return true;
-        }
+        },
     }),
 
     decorations: (state, plugin) => {
@@ -206,16 +224,22 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
           container.setAttribute('role', 'grid');
           container.setAttribute('aria-label', '캘린더');
           container.setAttribute('aria-roledescription', '날짜 선택기');
-          
+
           if (a11yState.value.focusedDate) {
             const focusedId = getDateCellId(a11yState.value.focusedDate);
             container.setAttribute('aria-activedescendant', focusedId);
           }
-          
-          if (a11yState.value.options.ariaLive && a11yState.value.options.ariaLive !== 'off') {
-            container.setAttribute('aria-live', a11yState.value.options.ariaLive);
+
+          if (
+            a11yState.value.options.ariaLive &&
+            a11yState.value.options.ariaLive !== 'off'
+          ) {
+            container.setAttribute(
+              'aria-live',
+              a11yState.value.options.ariaLive
+            );
           }
-          
+
           return container;
         })
       );
@@ -223,9 +247,10 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
       // 각 날짜 셀에 ARIA 속성 추가
       for (const day of state.days) {
         const cellId = getDateCellId(day.date);
-        const isFocused = a11yState.value.focusedDate?.getTime() === day.date.getTime();
+        const isFocused =
+          a11yState.value.focusedDate?.getTime() === day.date.getTime();
         const isSelected = isDateSelected(day.date, state);
-        
+
         decorations.push(
           DecorationFactory.widget(day.date, () => {
             const cell = document.createElement('td');
@@ -233,17 +258,17 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
             cell.setAttribute('role', 'gridcell');
             cell.setAttribute('aria-selected', isSelected ? 'true' : 'false');
             cell.setAttribute('tabindex', isFocused ? '0' : '-1');
-            
+
             // 접근 가능한 레이블 생성
             const ariaLabel = createDateLabel(day.date, state);
             cell.setAttribute('aria-label', ariaLabel);
-            
+
             // 설명 추가 (있는 경우)
             const description = a11yState.value.describedBy.get(cellId);
             if (description) {
               cell.setAttribute('aria-describedby', `${cellId}-desc`);
             }
-            
+
             return cell;
           })
         );
@@ -255,7 +280,10 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
           DecorationFactory.widget(new Date(), () => {
             const announcement = document.createElement('div');
             announcement.className = 'sr-only';
-            announcement.setAttribute('aria-live', a11yState.value.announcementType ?? 'polite');
+            announcement.setAttribute(
+              'aria-live',
+              a11yState.value.announcementType ?? 'polite'
+            );
             announcement.setAttribute('aria-atomic', 'true');
             announcement.textContent = a11yState.value.announcement;
             return announcement;
@@ -272,50 +300,50 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
         if (!a11yState?.value.options.keyboardNavigation) return false;
 
         const focusedDate = a11yState.value.focusedDate ?? state.currentDate;
-        
+
         switch (event.key) {
           case 'ArrowRight':
             event.preventDefault();
             return moveFocus(focusedDate, 1, 'day');
-            
+
           case 'ArrowLeft':
             event.preventDefault();
             return moveFocus(focusedDate, -1, 'day');
-            
+
           case 'ArrowDown':
             event.preventDefault();
             return moveFocus(focusedDate, 1, 'week');
-            
+
           case 'ArrowUp':
             event.preventDefault();
             return moveFocus(focusedDate, -1, 'week');
-            
+
           case 'Home':
             event.preventDefault();
             return moveFocus(focusedDate, 0, 'weekStart');
-            
+
           case 'End':
             event.preventDefault();
             return moveFocus(focusedDate, 0, 'weekEnd');
-            
+
           case 'PageUp':
             event.preventDefault();
             return moveFocus(focusedDate, -1, 'month');
-            
+
           case 'PageDown':
             event.preventDefault();
             return moveFocus(focusedDate, 1, 'month');
-            
+
           case 'Enter':
           case ' ':
             event.preventDefault();
             // 선택 이벤트 발생
             return true;
-            
+
           default:
             return false;
         }
-      }
+      },
     },
 
     queries: {
@@ -337,8 +365,8 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
       isKeyboardNavigationEnabled: (state, plugin) => {
         const a11yState = plugin.getState(state);
         return a11yState?.value.options.keyboardNavigation ?? false;
-      }
-    }
+      },
+    },
   };
 
   // 헬퍼 함수들을 spec 내부에 정의
@@ -354,38 +382,42 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
 
   const createDateLabel = (date: Date, _state: CalendarState): string => {
     const dayName = date.toLocaleDateString('ko-KR', { weekday: 'long' });
-    const dateStr = date.toLocaleDateString('ko-KR', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const dateStr = date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
-    
+
     let label = `${dayName}, ${dateStr}`;
-    
+
     // 오늘 표시
     const today = new Date();
     if (date.toDateString() === today.toDateString()) {
       label += ', 오늘';
     }
-    
+
     // 이벤트 개수 (Event Plugin이 있는 경우)
     // const events = getEventsForDate(date, state);
     // if (events.length > 0) {
     //   label += `, ${events.length}개의 일정`;
     // }
-    
+
     return label;
   };
 
-  const moveFocus = (currentDate: Date, amount: number, unit: string): boolean => {
+  const moveFocus = (
+    currentDate: Date,
+    amount: number,
+    unit: string
+  ): boolean => {
     const newDate = new Date(currentDate);
-    
+
     switch (unit) {
       case 'day':
         newDate.setDate(newDate.getDate() + amount);
         break;
       case 'week':
-        newDate.setDate(newDate.getDate() + (amount * 7));
+        newDate.setDate(newDate.getDate() + amount * 7);
         break;
       case 'month':
         newDate.setMonth(newDate.getMonth() + amount);
@@ -401,7 +433,7 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
         break;
       }
     }
-    
+
     // focusDate 커맨드 실행
     return true; // 실제로는 dispatch를 통해 처리
   };
@@ -415,36 +447,36 @@ export function createAccessibilityPlugin(options: AccessibilityOptions = {}): P
 export class AccessibilityValidator {
   static validateCalendar(_state: CalendarState): AccessibilityReport {
     const issues: AccessibilityIssue[] = [];
-    
+
     // ARIA 라벨 검증
     if (!this.hasAriaLabel()) {
       issues.push({
         type: 'missing-aria-label',
         severity: 'error',
-        message: '캘린더에 aria-label이 없습니다'
+        message: '캘린더에 aria-label이 없습니다',
       });
     }
-    
+
     // 키보드 네비게이션 검증
     if (!this.hasKeyboardSupport()) {
       issues.push({
         type: 'missing-keyboard-support',
         severity: 'error',
-        message: '키보드 네비게이션이 지원되지 않습니다'
+        message: '키보드 네비게이션이 지원되지 않습니다',
       });
     }
-    
+
     return {
       valid: issues.filter(i => i.severity === 'error').length === 0,
-      issues
+      issues,
     };
   }
-  
+
   private static hasAriaLabel(): boolean {
     // 실제 DOM 검사 로직
     return true; // 임시
   }
-  
+
   private static hasKeyboardSupport(): boolean {
     // 키보드 이벤트 핸들러 존재 검사
     return true; // 임시

@@ -3,14 +3,8 @@
  * 라이브러리 사용자가 참고할 수 있는 실제 플러그인 구현 예시입니다.
  */
 
-import { 
-  createCustomPlugin, 
-  PluginTemplates 
-} from '../utils/plugin-factory';
-import { 
-  createPluginBuilder, 
-  PluginPresets 
-} from '../utils/plugin-builder';
+import { createCustomPlugin, PluginTemplates } from '../utils/plugin-factory';
+import { createPluginBuilder, PluginPresets } from '../utils/plugin-builder';
 import { DecorationSet } from '../core/decoration';
 
 /**
@@ -24,7 +18,7 @@ export function createSimpleHighlightPlugin() {
       new Date('2024-01-01'), // 신정
       new Date('2024-12-25'), // 크리스마스
     ],
-    highlightClass: 'holiday-highlight'
+    highlightClass: 'holiday-highlight',
   });
 }
 
@@ -55,7 +49,6 @@ export interface Note {
  * 날짜를 클릭하면 할일을 추가할 수 있는 플러그인입니다.
  */
 export function createTodoPlugin() {
-
   return createCustomPlugin<{
     todos: TodoItem[];
     showCompleted: boolean;
@@ -63,38 +56,41 @@ export function createTodoPlugin() {
     key: 'todoPlugin',
     initialState: {
       todos: [],
-      showCompleted: true
+      showCompleted: true,
     },
     stateHandlers: {
-      'ADD_TODO': (state, payload) => ({
-        todos: [...state.todos, {
-          id: Date.now().toString(),
-          text: payload.text,
-          completed: false,
-          date: payload.date,
-          createdAt: new Date()
-        }]
+      ADD_TODO: (state, payload) => ({
+        todos: [
+          ...state.todos,
+          {
+            id: Date.now().toString(),
+            text: payload.text,
+            completed: false,
+            date: payload.date,
+            createdAt: new Date(),
+          },
+        ],
       }),
-      'TOGGLE_TODO': (state, payload) => ({
-        todos: state.todos.map(todo => 
-          todo.id === payload.id 
+      TOGGLE_TODO: (state, payload) => ({
+        todos: state.todos.map(todo =>
+          todo.id === payload.id
             ? { ...todo, completed: !todo.completed }
             : todo
-        )
+        ),
       }),
-      'REMOVE_TODO': (state, payload) => ({
-        todos: state.todos.filter(todo => todo.id !== payload.id)
+      REMOVE_TODO: (state, payload) => ({
+        todos: state.todos.filter(todo => todo.id !== payload.id),
       }),
-      'TOGGLE_SHOW_COMPLETED': (state) => ({
-        showCompleted: !state.showCompleted
-      })
+      TOGGLE_SHOW_COMPLETED: state => ({
+        showCompleted: !state.showCompleted,
+      }),
     },
     commands: {
       addTodo: (dateStr: string, text: string) => (_state, dispatch) => {
         dispatch?.({
           type: 'ADD_TODO',
           payload: { date: dateStr, text },
-          meta: new Map([['source', 'todoPlugin']])
+          meta: new Map([['source', 'todoPlugin']]),
         });
         return true;
       },
@@ -102,7 +98,7 @@ export function createTodoPlugin() {
         dispatch?.({
           type: 'TOGGLE_TODO',
           payload: { id },
-          meta: new Map([['source', 'todoPlugin']])
+          meta: new Map([['source', 'todoPlugin']]),
         });
         return true;
       },
@@ -110,10 +106,10 @@ export function createTodoPlugin() {
         dispatch?.({
           type: 'REMOVE_TODO',
           payload: { id },
-          meta: new Map([['source', 'todoPlugin']])
+          meta: new Map([['source', 'todoPlugin']]),
         });
         return true;
-      }
+      },
     },
     decorationFactory: (_state, pluginState) => {
       const decorations = pluginState.todos
@@ -124,10 +120,10 @@ export function createTodoPlugin() {
           spec: {
             class: `todo-badge ${todo.completed ? 'completed' : 'pending'}`,
             'data-todo-count': '1',
-            title: todo.text
-          }
+            title: todo.text,
+          },
         }));
-      
+
       return new DecorationSet(decorations);
     },
     eventHandlers: {
@@ -137,13 +133,17 @@ export function createTodoPlugin() {
           const todoText = prompt('할일을 입력하세요:');
           if (todoText) {
             const calendar = window.__calendarInstance;
-            calendar?.execCommand('addTodo', date.toISOString().split('T')[0], todoText);
+            calendar?.execCommand(
+              'addTodo',
+              date.toISOString().split('T')[0],
+              todoText
+            );
           }
           return true; // 이벤트 소비
         }
         return false;
-      }
-    }
+      },
+    },
   });
 }
 
@@ -162,7 +162,6 @@ export interface WeatherData {
  * 외부 API에서 날씨 정보를 가져와 표시하는 플러그인입니다.
  */
 export function createWeatherPlugin(apiKey: string) {
-
   return createCustomPlugin<{
     weatherData: WeatherData[];
     loading: boolean;
@@ -172,52 +171,54 @@ export function createWeatherPlugin(apiKey: string) {
     initialState: {
       weatherData: [],
       loading: false,
-      lastUpdate: null
+      lastUpdate: null,
     },
     stateHandlers: {
-      'START_WEATHER_FETCH': (_state) => ({
-        loading: true
+      START_WEATHER_FETCH: _state => ({
+        loading: true,
       }),
-      'WEATHER_FETCH_SUCCESS': (_state, payload) => ({
+      WEATHER_FETCH_SUCCESS: (_state, payload) => ({
         weatherData: payload.data,
         loading: false,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
       }),
-      'WEATHER_FETCH_ERROR': (_state) => ({
-        loading: false
-      })
+      WEATHER_FETCH_ERROR: _state => ({
+        loading: false,
+      }),
     },
     commands: {
       fetchWeather: (location: string) => (_state, dispatch) => {
         dispatch?.({
           type: 'START_WEATHER_FETCH',
           payload: {},
-          meta: new Map([['source', 'weatherPlugin']])
+          meta: new Map([['source', 'weatherPlugin']]),
         });
 
         // 비동기 처리를 내부적으로 실행 (Promise는 반환하지 않음)
         (async () => {
           try {
             // 실제 날씨 API 호출 (예시)
-            const response = await fetch(`https://api.weather.com/forecast?location=${location}&key=${apiKey}`);
+            const response = await fetch(
+              `https://api.weather.com/forecast?location=${location}&key=${apiKey}`
+            );
             const data = await response.json();
-            
+
             dispatch?.({
               type: 'WEATHER_FETCH_SUCCESS',
               payload: { data: data.forecast },
-              meta: new Map([['source', 'weatherPlugin']])
+              meta: new Map([['source', 'weatherPlugin']]),
             });
           } catch (error) {
             dispatch?.({
               type: 'WEATHER_FETCH_ERROR',
               payload: { error },
-              meta: new Map([['source', 'weatherPlugin']])
+              meta: new Map([['source', 'weatherPlugin']]),
             });
           }
         })();
 
         return true; // 명령이 시작되었음을 표시
-      }
+      },
     },
     decorationFactory: (_state, pluginState) => {
       if (pluginState.loading) {
@@ -230,12 +231,12 @@ export function createWeatherPlugin(apiKey: string) {
         spec: {
           class: 'weather-info',
           'data-weather': `${weather.temperature}°C ${weather.condition}`,
-          title: `날씨: ${weather.condition}, 온도: ${weather.temperature}°C`
-        }
+          title: `날씨: ${weather.condition}, 온도: ${weather.temperature}°C`,
+        },
       }));
 
       return new DecorationSet(decorations);
-    }
+    },
   });
 }
 
@@ -257,42 +258,42 @@ export function createAdvancedCounterPlugin(options: {
     .withInitialState({
       counts: new Map(),
       settings: options,
-      lastReset: null
+      lastReset: null,
     })
     .onTransaction('INCREMENT_COUNT', (state, payload) => {
       const dateKey = (payload as any).date;
       const currentCount = state.counts.get(dateKey) ?? 0;
       const maxCount = state.settings.maxCount ?? Infinity;
-      
+
       if (currentCount >= maxCount) {
         return state; // 최대 카운트 도달
       }
 
       const newCounts = new Map(state.counts);
       newCounts.set(dateKey, currentCount + 1);
-      
+
       return { counts: newCounts };
     })
-    .onTransaction('RESET_COUNTS', (_state) => ({
+    .onTransaction('RESET_COUNTS', _state => ({
       counts: new Map(),
-      lastReset: new Date()
+      lastReset: new Date(),
     }))
-    .onTransaction('DAILY_RESET_CHECK', (state) => {
+    .onTransaction('DAILY_RESET_CHECK', state => {
       if (!state.settings.resetDaily || !state.lastReset) {
         return state;
       }
 
       const today = new Date();
       const lastReset = state.lastReset;
-      
+
       // 날짜가 바뀌었으면 리셋
       if (today.toDateString() !== lastReset.toDateString()) {
         return {
           counts: new Map(),
-          lastReset: today
+          lastReset: today,
         };
       }
-      
+
       return state;
     })
     .addCommand('incrementCount', (date: Date) => (_state, dispatch) => {
@@ -300,7 +301,7 @@ export function createAdvancedCounterPlugin(options: {
       dispatch?.({
         type: 'INCREMENT_COUNT',
         payload: { date: dateKey },
-        meta: new Map([['source', 'advancedCounter']])
+        meta: new Map([['source', 'advancedCounter']]),
       });
       return true;
     })
@@ -308,7 +309,7 @@ export function createAdvancedCounterPlugin(options: {
       dispatch?.({
         type: 'RESET_COUNTS',
         payload: {},
-        meta: new Map([['source', 'advancedCounter']])
+        meta: new Map([['source', 'advancedCounter']]),
       });
       return true;
     })
@@ -332,26 +333,29 @@ export function createAdvancedCounterPlugin(options: {
           spec: {
             class: 'count-badge',
             'data-count': count.toString(),
-            title: `클릭 횟수: ${count}`
-          }
+            title: `클릭 횟수: ${count}`,
+          },
         }));
 
       return new DecorationSet(decorations);
     })
     .postProcessTransactions((transactions, _oldState, _newState) => {
       // 자동 일일 리셋 체크
-      const hasUserAction = transactions.some(tr => 
-        tr.meta.get('source') === 'user'
+      const hasUserAction = transactions.some(
+        tr => tr.meta.get('source') === 'user'
       );
-      
+
       if (hasUserAction) {
         return {
           type: 'DAILY_RESET_CHECK',
           payload: {},
-          meta: new Map([['source', 'advancedCounter'], ['auto', 'true']])
+          meta: new Map([
+            ['source', 'advancedCounter'],
+            ['auto', 'true'],
+          ]),
         };
       }
-      
+
       return null;
     })
     .build();
@@ -372,8 +376,8 @@ export function createNotesPlugin() {
         spec: {
           class: `note-highlight ${note.color}`,
           'data-note-id': note.id,
-          title: note.text
-        }
+          title: note.text,
+        },
       }));
 
       return new DecorationSet(decorations);
@@ -387,9 +391,9 @@ export function createNotesPlugin() {
             text: noteText,
             date: date.toISOString().split('T')[0],
             color: 'yellow',
-            createdAt: new Date()
+            createdAt: new Date(),
           };
-          
+
           const calendar = window.__calendarInstance;
           calendar?.execCommand('addItem', note);
         }
@@ -418,10 +422,10 @@ export function createDarkModePlugin() {
     })
     .postProcessTransactions((transactions, _oldState, _newState) => {
       // 다크모드 상태 변경시 CSS 클래스 적용
-      const darkModeChanged = transactions.some(tr => 
-        tr.type === 'SET_STATE' || tr.type === 'TOGGLE_STATE'
+      const darkModeChanged = transactions.some(
+        tr => tr.type === 'SET_STATE' || tr.type === 'TOGGLE_STATE'
       );
-      
+
       if (darkModeChanged) {
         // 실제로는 DOM 조작을 별도 시스템에서 처리
         const calendar = document.querySelector('.calendar');
@@ -430,7 +434,7 @@ export function createDarkModePlugin() {
           calendar.classList.toggle('dark-mode', true); // 예시
         }
       }
-      
+
       return null;
     })
     .build();
@@ -448,10 +452,10 @@ export function createExampleCalendar() {
     createAdvancedCounterPlugin({
       maxCount: 5,
       resetDaily: true,
-      showBadge: true
+      showBadge: true,
     }),
     createNotesPlugin(),
-    createDarkModePlugin()
+    createDarkModePlugin(),
   ];
 
   return plugins;

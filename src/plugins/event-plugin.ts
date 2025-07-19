@@ -57,7 +57,11 @@ class EventPluginState extends PluginState<EventState> {
 
     switch (transaction.type) {
       case 'EVENT_ADD':
-        if (transaction.payload && typeof transaction.payload === 'object' && 'event' in transaction.payload) {
+        if (
+          transaction.payload &&
+          typeof transaction.payload === 'object' &&
+          'event' in transaction.payload
+        ) {
           const payload = transaction.payload as { event: unknown };
           if (payload.event && typeof payload.event === 'object') {
             const newEvent = this.createEvent(payload.event);
@@ -71,11 +75,21 @@ class EventPluginState extends PluginState<EventState> {
 
       case 'EVENT_UPDATE':
         if (transaction.payload && typeof transaction.payload === 'object') {
-          const payload = transaction.payload as { eventId?: unknown; updates?: unknown };
-          if (typeof payload.eventId === 'string' && payload.updates && typeof payload.updates === 'object') {
+          const payload = transaction.payload as {
+            eventId?: unknown;
+            updates?: unknown;
+          };
+          if (
+            typeof payload.eventId === 'string' &&
+            payload.updates &&
+            typeof payload.updates === 'object'
+          ) {
             const existingEvent = newValue.events.get(payload.eventId);
             if (existingEvent) {
-              const updatedEvent = { ...existingEvent, ...payload.updates as Partial<CalendarEvent> };
+              const updatedEvent = {
+                ...existingEvent,
+                ...(payload.updates as Partial<CalendarEvent>),
+              };
               if (this.isValidEvent(updatedEvent, newValue)) {
                 // 기존 이벤트를 날짜별 캐시에서 제거
                 this.updateEventsByDate(newValue, existingEvent, 'remove');
@@ -89,14 +103,18 @@ class EventPluginState extends PluginState<EventState> {
         break;
 
       case 'EVENT_DELETE':
-        if (transaction.payload && typeof transaction.payload === 'object' && 'eventId' in transaction.payload) {
+        if (
+          transaction.payload &&
+          typeof transaction.payload === 'object' &&
+          'eventId' in transaction.payload
+        ) {
           const payload = transaction.payload as { eventId: unknown };
           if (typeof payload.eventId === 'string') {
             const eventToDelete = newValue.events.get(payload.eventId);
             if (eventToDelete) {
               newValue.events.delete(payload.eventId);
               this.updateEventsByDate(newValue, eventToDelete, 'remove');
-              
+
               // 선택/편집 중인 이벤트면 해제
               if (newValue.selectedEventId === payload.eventId) {
                 newValue.selectedEventId = null;
@@ -110,7 +128,11 @@ class EventPluginState extends PluginState<EventState> {
         break;
 
       case 'EVENT_SELECT':
-        if (transaction.payload && typeof transaction.payload === 'object' && 'eventId' in transaction.payload) {
+        if (
+          transaction.payload &&
+          typeof transaction.payload === 'object' &&
+          'eventId' in transaction.payload
+        ) {
           const payload = transaction.payload as { eventId: unknown };
           if (typeof payload.eventId === 'string') {
             newValue.selectedEventId = payload.eventId;
@@ -123,7 +145,11 @@ class EventPluginState extends PluginState<EventState> {
         break;
 
       case 'EVENT_START_EDIT':
-        if (transaction.payload && typeof transaction.payload === 'object' && 'eventId' in transaction.payload) {
+        if (
+          transaction.payload &&
+          typeof transaction.payload === 'object' &&
+          'eventId' in transaction.payload
+        ) {
           const payload = transaction.payload as { eventId: unknown };
           if (typeof payload.eventId === 'string') {
             newValue.editingEventId = payload.eventId;
@@ -136,10 +162,17 @@ class EventPluginState extends PluginState<EventState> {
         break;
 
       case 'EVENT_SET_OPTIONS':
-        if (transaction.payload && typeof transaction.payload === 'object' && 'options' in transaction.payload) {
+        if (
+          transaction.payload &&
+          typeof transaction.payload === 'object' &&
+          'options' in transaction.payload
+        ) {
           const payload = transaction.payload as { options: unknown };
           if (payload.options && typeof payload.options === 'object') {
-            newValue.options = { ...newValue.options, ...payload.options as Partial<EventOptions> };
+            newValue.options = {
+              ...newValue.options,
+              ...(payload.options as Partial<EventOptions>),
+            };
           }
         }
         break;
@@ -164,28 +197,30 @@ class EventPluginState extends PluginState<EventState> {
     return {
       ...this.value,
       events: Object.fromEntries(this.value.events),
-      eventsByDate: Object.fromEntries(this.value.eventsByDate)
+      eventsByDate: Object.fromEntries(this.value.eventsByDate),
     };
   }
 
   static fromJSON(value: any): EventPluginState {
     const state = { ...value };
-    
+
     // events Map 복원
     state.events = new Map();
     if (value.events) {
-      for (const [id, event] of Object.entries(value.events as Record<string, any>)) {
+      for (const [id, event] of Object.entries(
+        value.events as Record<string, any>
+      )) {
         state.events.set(id, {
           ...event,
           startDate: new Date(event.startDate),
-          endDate: new Date(event.endDate)
+          endDate: new Date(event.endDate),
         });
       }
     }
-    
+
     // eventsByDate Map 복원
     state.eventsByDate = new Map(Object.entries(value.eventsByDate ?? {}));
-    
+
     return new EventPluginState(state);
   }
 
@@ -201,7 +236,7 @@ class EventPluginState extends PluginState<EventState> {
       color: eventData.color ?? '#3174ad',
       category: eventData.category,
       metadata: eventData.metadata ?? {},
-      recurrence: eventData.recurrence
+      recurrence: eventData.recurrence,
     };
   }
 
@@ -229,7 +264,10 @@ class EventPluginState extends PluginState<EventState> {
     // 겹침 허용 여부 확인
     if (!state.options.allowOverlap) {
       for (const existingEvent of state.events.values()) {
-        if (existingEvent.id !== event.id && this.eventsOverlap(event, existingEvent)) {
+        if (
+          existingEvent.id !== event.id &&
+          this.eventsOverlap(event, existingEvent)
+        ) {
           return false;
         }
       }
@@ -248,20 +286,26 @@ class EventPluginState extends PluginState<EventState> {
   }
 
   private eventsOverlap(event1: CalendarEvent, event2: CalendarEvent): boolean {
-    return event1.startDate < event2.endDate && event1.endDate > event2.startDate;
+    return (
+      event1.startDate < event2.endDate && event1.endDate > event2.startDate
+    );
   }
 
-  private updateEventsByDate(state: EventState, event: CalendarEvent, action: 'add' | 'remove'): void {
+  private updateEventsByDate(
+    state: EventState,
+    event: CalendarEvent,
+    action: 'add' | 'remove'
+  ): void {
     const startDate = new Date(event.startDate);
     const endDate = new Date(event.endDate);
-    
+
     // 이벤트가 걸쳐있는 모든 날짜에 대해 처리
     const current = new Date(startDate);
     current.setHours(0, 0, 0, 0);
-    
+
     while (current <= endDate) {
       const dateKey = this.getDateKey(current);
-      
+
       if (action === 'add') {
         const eventsOnDate = state.eventsByDate.get(dateKey) ?? [];
         if (!eventsOnDate.includes(event.id)) {
@@ -280,7 +324,7 @@ class EventPluginState extends PluginState<EventState> {
           }
         }
       }
-      
+
       current.setDate(current.getDate() + 1);
     }
   }
@@ -293,13 +337,15 @@ class EventPluginState extends PluginState<EventState> {
 /**
  * Event Management Plugin 생성 함수
  */
-export function createEventPlugin(options: EventOptions = {}): Plugin<EventState> {
+export function createEventPlugin(
+  options: EventOptions = {}
+): Plugin<EventState> {
   const defaultOptions: EventOptions = {
     allowOverlap: true,
     maxEventsPerDay: undefined,
     defaultDuration: 60, // 1시간
     allowPastEvents: true,
-    categories: undefined
+    categories: undefined,
   };
 
   const finalOptions = { ...defaultOptions, ...options };
@@ -308,99 +354,152 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
     key: 'events',
 
     state: {
-      init: () => new EventPluginState({
-        events: new Map(),
-        selectedEventId: null,
-        editingEventId: null,
-        options: finalOptions,
-        eventsByDate: new Map()
-      }),
-      apply: (transaction, state) => state.apply(transaction)
+      init: () =>
+        new EventPluginState({
+          events: new Map(),
+          selectedEventId: null,
+          editingEventId: null,
+          options: finalOptions,
+          eventsByDate: new Map(),
+        }),
+      apply: (transaction, state) => state.apply(transaction),
     },
 
-    commands: (plugin) => ({
-      addEvent: (event: Partial<CalendarEvent>) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_ADD', { event }));
-        }
-        return true;
-      },
+    commands: plugin => ({
+      addEvent:
+        (event: Partial<CalendarEvent>) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_ADD', { event }));
+          }
+          return true;
+        },
 
-      updateEvent: (eventId: string, updates: Partial<CalendarEvent>) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_UPDATE', { eventId, updates }));
-        }
-        return true;
-      },
+      updateEvent:
+        (eventId: string, updates: Partial<CalendarEvent>) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_UPDATE', { eventId, updates }));
+          }
+          return true;
+        },
 
-      deleteEvent: (eventId: string) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_DELETE', { eventId }));
-        }
-        return true;
-      },
+      deleteEvent:
+        (eventId: string) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_DELETE', { eventId }));
+          }
+          return true;
+        },
 
-      selectEvent: (eventId: string) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_SELECT', { eventId }));
-        }
-        return true;
-      },
+      selectEvent:
+        (eventId: string) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_SELECT', { eventId }));
+          }
+          return true;
+        },
 
-      deselectEvent: () => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_DESELECT', {}));
-        }
-        return true;
-      },
+      deselectEvent:
+        () =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_DESELECT', {}));
+          }
+          return true;
+        },
 
-      startEditEvent: (eventId: string) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_START_EDIT', { eventId }));
-        }
-        return true;
-      },
+      startEditEvent:
+        (eventId: string) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_START_EDIT', { eventId }));
+          }
+          return true;
+        },
 
-      endEditEvent: () => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_END_EDIT', {}));
-        }
-        return true;
-      },
+      endEditEvent:
+        () =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_END_EDIT', {}));
+          }
+          return true;
+        },
 
-      createEventOnDate: (date: Date, title?: string) => (state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        const eventState = plugin.getState(state);
-        const duration = eventState?.value.options.defaultDuration ?? 60;
-        
-        const startDate = new Date(date);
-        const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
-        
-        const event: Partial<CalendarEvent> = {
-          title: title ?? `Event on ${date.toLocaleDateString()}`,
-          startDate,
-          endDate,
-          allDay: true
-        };
+      createEventOnDate:
+        (date: Date, title?: string) =>
+        (
+          state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          const eventState = plugin.getState(state);
+          const duration = eventState?.value.options.defaultDuration ?? 60;
 
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_ADD', { event }));
-        }
-        return true;
-      },
+          const startDate = new Date(date);
+          const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
 
-      bulkAddEvents: (events: CalendarEvent[]) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_BULK_ADD', { events }));
-        }
-        return true;
-      },
+          const event: Partial<CalendarEvent> = {
+            title: title ?? `Event on ${date.toLocaleDateString()}`,
+            startDate,
+            endDate,
+            allDay: true,
+          };
 
-      setEventOptions: (newOptions: Partial<EventOptions>) => (_state: CalendarState, dispatch?: (transaction: Transaction) => void) => {
-        if (dispatch) {
-          dispatch(transactions.custom('EVENT_SET_OPTIONS', { options: newOptions }));
-        }
-        return true;
-      }
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_ADD', { event }));
+          }
+          return true;
+        },
+
+      bulkAddEvents:
+        (events: CalendarEvent[]) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('EVENT_BULK_ADD', { events }));
+          }
+          return true;
+        },
+
+      setEventOptions:
+        (newOptions: Partial<EventOptions>) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(
+              transactions.custom('EVENT_SET_OPTIONS', { options: newOptions })
+            );
+          }
+          return true;
+        },
     }),
 
     decorations: (state, plugin) => {
@@ -427,7 +526,7 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
           );
 
           // 각 이벤트를 작은 점으로 표시
-          eventsOnDate.forEach((event) => {
+          eventsOnDate.forEach(event => {
             const widget = () => {
               const eventDot = document.createElement('div');
               eventDot.className = 'calendar-event-dot';
@@ -442,17 +541,20 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
               return eventDot;
             };
 
-            decorations.push(
-              DecorationFactory.widget(date, widget)
-            );
+            decorations.push(DecorationFactory.widget(date, widget));
           });
 
           // 선택된 이벤트 강조
           if (eventState.value.selectedEventId) {
-            const selectedEvent = eventState.value.events.get(eventState.value.selectedEventId);
+            const selectedEvent = eventState.value.events.get(
+              eventState.value.selectedEventId
+            );
             if (selectedEvent && eventsOnDate.includes(selectedEvent)) {
               decorations.push(
-                DecorationFactory.highlight(date, 'calendar-selected-event-date')
+                DecorationFactory.highlight(
+                  date,
+                  'calendar-selected-event-date'
+                )
               );
             }
           }
@@ -465,7 +567,7 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
     props: {
       handleDateClick: (_date, event, _state, _plugin) => {
         const target = event.target as HTMLElement;
-        
+
         // 이벤트 점을 클릭한 경우
         if (target.classList.contains('calendar-event-dot')) {
           const eventId = target.getAttribute('data-event-id');
@@ -474,15 +576,16 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
             return true; // selectEvent 커맨드로 처리
           }
         }
-        
+
         // 빈 날짜를 더블클릭한 경우 이벤트 생성
-        if (event.detail === 2) { // 더블클릭
+        if (event.detail === 2) {
+          // 더블클릭
           // createEventOnDate 커맨드로 처리
           return true;
         }
 
         return false;
-      }
+      },
     },
 
     queries: {
@@ -512,7 +615,9 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
             events.push(event);
           }
         }
-        return events.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+        return events.sort(
+          (a, b) => a.startDate.getTime() - b.startDate.getTime()
+        );
       },
 
       getAllEvents: (state, plugin) => {
@@ -524,29 +629,33 @@ export function createEventPlugin(options: EventOptions = {}): Plugin<EventState
       getSelectedEvent: (state, plugin) => {
         const eventState = plugin.getState(state);
         if (!eventState?.value.selectedEventId) return null;
-        return eventState.value.events.get(eventState.value.selectedEventId) ?? null;
+        return (
+          eventState.value.events.get(eventState.value.selectedEventId) ?? null
+        );
       },
 
       getEventsByCategory: (state, plugin, category: string) => {
         const eventState = plugin.getState(state);
         if (!eventState) return [];
-        
-        return Array.from(eventState.value.events.values())
-          .filter(event => event.category === category);
+
+        return Array.from(eventState.value.events.values()).filter(
+          event => event.category === category
+        );
       },
 
       searchEvents: (state, plugin, query: string) => {
         const eventState = plugin.getState(state);
         if (!eventState) return [];
-        
+
         const lowercaseQuery = query.toLowerCase();
-        return Array.from(eventState.value.events.values())
-          .filter(event => 
+        return Array.from(eventState.value.events.values()).filter(
+          event =>
             event.title.toLowerCase().includes(lowercaseQuery) ||
-            (event.description && event.description.toLowerCase().includes(lowercaseQuery))
-          );
-      }
-    }
+            (event.description &&
+              event.description.toLowerCase().includes(lowercaseQuery))
+        );
+      },
+    },
   };
 
   return new Plugin(spec);

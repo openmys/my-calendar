@@ -46,11 +46,11 @@ class RangePluginState extends PluginState<RangeState> {
         if (newValue.isSelecting && newValue.selectionStart) {
           const endDate = new Date(transaction.payload.date);
           const startDate = newValue.selectionStart;
-          
+
           // 시작과 끝 날짜 정렬
           const start = startDate <= endDate ? startDate : endDate;
           const end = startDate <= endDate ? endDate : startDate;
-          
+
           // 범위 제한 확인
           if (this.isValidRange(start, end, newValue.options)) {
             newValue.selectedRange = { start, end };
@@ -78,8 +78,8 @@ class RangePluginState extends PluginState<RangeState> {
         if (this.isValidDate(singleDate, newValue.options)) {
           if (newValue.options.selectionMode === 'multiple') {
             // 다중 선택 모드
-            const index = newValue.selectedDates.findIndex(d => 
-              d.getTime() === singleDate.getTime()
+            const index = newValue.selectedDates.findIndex(
+              d => d.getTime() === singleDate.getTime()
             );
             if (index > -1) {
               newValue.selectedDates.splice(index, 1);
@@ -96,8 +96,9 @@ class RangePluginState extends PluginState<RangeState> {
       }
 
       case 'RANGE_HOVER_DATE':
-        newValue.hoveredDate = transaction.payload.date ? 
-          new Date(transaction.payload.date) : null;
+        newValue.hoveredDate = transaction.payload.date
+          ? new Date(transaction.payload.date)
+          : null;
         break;
 
       case 'RANGE_CLEAR_SELECTION':
@@ -109,7 +110,10 @@ class RangePluginState extends PluginState<RangeState> {
         break;
 
       case 'RANGE_SET_OPTIONS':
-        newValue.options = { ...newValue.options, ...transaction.payload.options };
+        newValue.options = {
+          ...newValue.options,
+          ...transaction.payload.options,
+        };
         break;
     }
 
@@ -119,11 +123,13 @@ class RangePluginState extends PluginState<RangeState> {
   toJSON(): RangeState {
     return {
       ...this.value,
-      selectedRange: this.value.selectedRange ? {
-        start: this.value.selectedRange.start,
-        end: this.value.selectedRange.end
-      } : null,
-      selectedDates: [...this.value.selectedDates]
+      selectedRange: this.value.selectedRange
+        ? {
+            start: this.value.selectedRange.start,
+            end: this.value.selectedRange.end,
+          }
+        : null,
+      selectedDates: [...this.value.selectedDates],
     };
   }
 
@@ -132,7 +138,7 @@ class RangePluginState extends PluginState<RangeState> {
     if (state.selectedRange) {
       state.selectedRange = {
         start: new Date(state.selectedRange.start),
-        end: new Date(state.selectedRange.end)
+        end: new Date(state.selectedRange.end),
       };
     }
     state.selectedDates = state.selectedDates.map(d => new Date(d));
@@ -140,31 +146,32 @@ class RangePluginState extends PluginState<RangeState> {
   }
 
   private isValidRange(start: Date, end: Date, options: RangeOptions): boolean {
-    const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    
+    const daysDiff =
+      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
     if (options.maxRange && daysDiff > options.maxRange) {
       return false;
     }
-    
+
     if (options.minRange && daysDiff < options.minRange) {
       return false;
     }
-    
+
     return this.isValidDate(start, options) && this.isValidDate(end, options);
   }
 
   private isValidDate(date: Date, options: RangeOptions): boolean {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (!options.allowPastDates && date < today) {
       return false;
     }
-    
+
     if (!options.allowFutureDates && date > today) {
       return false;
     }
-    
+
     return true;
   }
 }
@@ -172,13 +179,15 @@ class RangePluginState extends PluginState<RangeState> {
 /**
  * Range Selection Plugin 생성 함수
  */
-export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState> {
+export function createRangePlugin(
+  options: RangeOptions = {}
+): Plugin<RangeState> {
   const defaultOptions: RangeOptions = {
     maxRange: undefined,
     minRange: 1,
     allowPastDates: true,
     allowFutureDates: true,
-    selectionMode: 'range'
+    selectionMode: 'range',
   };
 
   const finalOptions = { ...defaultOptions, ...options };
@@ -187,18 +196,19 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
     key: 'range',
 
     state: {
-      init: () => new RangePluginState({
-        selectedRange: null,
-        isSelecting: false,
-        selectionStart: null,
-        hoveredDate: null,
-        selectedDates: [],
-        options: finalOptions
-      }),
-      apply: (transaction, state) => state.apply(transaction)
+      init: () =>
+        new RangePluginState({
+          selectedRange: null,
+          isSelecting: false,
+          selectionStart: null,
+          hoveredDate: null,
+          selectedDates: [],
+          options: finalOptions,
+        }),
+      apply: (transaction, state) => state.apply(transaction),
     },
 
-    commands: (_plugin) => ({
+    commands: _plugin => ({
       startRangeSelection: (date: Date) => (_state: any, dispatch?: any) => {
         if (dispatch) {
           dispatch(transactions.custom('RANGE_START_SELECTION', { date }));
@@ -227,14 +237,19 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
         return true;
       },
 
-      selectRange: (start: Date, end: Date) => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_START_SELECTION', { date: start }));
-          dispatch(transactions.custom('RANGE_UPDATE_SELECTION', { date: end }));
-          dispatch(transactions.custom('RANGE_END_SELECTION', {}));
-        }
-        return true;
-      },
+      selectRange:
+        (start: Date, end: Date) => (_state: any, dispatch?: any) => {
+          if (dispatch) {
+            dispatch(
+              transactions.custom('RANGE_START_SELECTION', { date: start })
+            );
+            dispatch(
+              transactions.custom('RANGE_UPDATE_SELECTION', { date: end })
+            );
+            dispatch(transactions.custom('RANGE_END_SELECTION', {}));
+          }
+          return true;
+        },
 
       clearRangeSelection: () => (_state: any, dispatch?: any) => {
         if (dispatch) {
@@ -250,12 +265,16 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
         return true;
       },
 
-      setRangeOptions: (newOptions: Partial<RangeOptions>) => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_SET_OPTIONS', { options: newOptions }));
-        }
-        return true;
-      }
+      setRangeOptions:
+        (newOptions: Partial<RangeOptions>) =>
+        (_state: any, dispatch?: any) => {
+          if (dispatch) {
+            dispatch(
+              transactions.custom('RANGE_SET_OPTIONS', { options: newOptions })
+            );
+          }
+          return true;
+        },
     }),
 
     decorations: (state, plugin) => {
@@ -267,7 +286,7 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
       // 선택된 범위 데코레이션
       if (rangeState.value.selectedRange) {
         const { start, end } = rangeState.value.selectedRange;
-        
+
         if (start.getTime() === end.getTime()) {
           // 단일 날짜 선택
           decorations.push(
@@ -279,16 +298,16 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
           while (current <= end) {
             const isStart = current.getTime() === start.getTime();
             const isEnd = current.getTime() === end.getTime();
-            
+
             let className = 'calendar-range-selected';
             if (isStart) className += ' range-start';
             if (isEnd) className += ' range-end';
             if (!isStart && !isEnd) className += ' range-middle';
-            
+
             decorations.push(
               DecorationFactory.highlight(new Date(current), className)
             );
-            
+
             current.setDate(current.getDate() + 1);
           }
         }
@@ -304,19 +323,23 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
       }
 
       // 임시 범위 미리보기 (선택 중일 때)
-      if (rangeState.value.isSelecting && 
-          rangeState.value.selectionStart && 
-          rangeState.value.hoveredDate) {
-        
+      if (
+        rangeState.value.isSelecting &&
+        rangeState.value.selectionStart &&
+        rangeState.value.hoveredDate
+      ) {
         const start = rangeState.value.selectionStart;
         const end = rangeState.value.hoveredDate;
         const actualStart = start <= end ? start : end;
         const actualEnd = start <= end ? end : start;
-        
+
         const current = new Date(actualStart);
         while (current <= actualEnd) {
           decorations.push(
-            DecorationFactory.highlight(new Date(current), 'calendar-range-preview')
+            DecorationFactory.highlight(
+              new Date(current),
+              'calendar-range-preview'
+            )
           );
           current.setDate(current.getDate() + 1);
         }
@@ -325,7 +348,10 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
       // 호버 데코레이션
       if (rangeState.value.hoveredDate && !rangeState.value.isSelecting) {
         decorations.push(
-          DecorationFactory.highlight(rangeState.value.hoveredDate, 'calendar-hover')
+          DecorationFactory.highlight(
+            rangeState.value.hoveredDate,
+            'calendar-hover'
+          )
         );
       }
 
@@ -338,13 +364,13 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
         if (!rangeState) return false;
 
         const { selectionMode } = rangeState.value.options;
-        
+
         if (event.shiftKey && selectionMode === 'range') {
           // Shift 클릭으로 범위 선택
           if (rangeState.value.selectedRange) {
             // 기존 선택의 시작점을 사용하여 새 범위 생성
             const existingStart = rangeState.value.selectedRange.start;
-            
+
             // Shift + 클릭으로 범위 선택: 로그로 상태 확인
             // eslint-disable-next-line no-console
             console.log('범위 선택:', { existingStart, date });
@@ -372,7 +398,7 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
         }
 
         return false;
-      }
+      },
     },
 
     queries: {
@@ -384,34 +410,34 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
       getSelectedDates: (state, plugin) => {
         const rangeState = plugin.getState(state);
         if (!rangeState) return [];
-        
+
         if (rangeState.value.selectedRange) {
           const { start, end } = rangeState.value.selectedRange;
           const dates: Date[] = [];
           const current = new Date(start);
-          
+
           while (current <= end) {
             dates.push(new Date(current));
             current.setDate(current.getDate() + 1);
           }
-          
+
           return dates;
         }
-        
+
         return rangeState.value.selectedDates;
       },
 
       isDateSelected: (state, plugin, date: Date) => {
         const rangeState = plugin.getState(state);
         if (!rangeState) return false;
-        
+
         if (rangeState.value.selectedRange) {
           const { start, end } = rangeState.value.selectedRange;
           return date >= start && date <= end;
         }
-        
-        return rangeState.value.selectedDates.some(d => 
-          d.getTime() === date.getTime()
+
+        return rangeState.value.selectedDates.some(
+          d => d.getTime() === date.getTime()
         );
       },
 
@@ -423,8 +449,8 @@ export function createRangePlugin(options: RangeOptions = {}): Plugin<RangeState
       isSelecting: (state, plugin) => {
         const rangeState = plugin.getState(state);
         return rangeState?.value.isSelecting ?? false;
-      }
-    }
+      },
+    },
   };
 
   return new Plugin(spec);

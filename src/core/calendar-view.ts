@@ -33,12 +33,10 @@ export class CalendarView {
 
   // 이벤트 콜백들
   private onStateChangeCallbacks: Array<(state: CalendarState) => void> = [];
-  private onTransactionCallbacks: Array<(transaction: Transaction) => void> = [];
+  private onTransactionCallbacks: Array<(transaction: Transaction) => void> =
+    [];
 
-  constructor(
-    element: HTMLElement,
-    options: CalendarViewOptions = {}
-  ) {
+  constructor(element: HTMLElement, options: CalendarViewOptions = {}) {
     this.element = element;
     this.autoRender = options.autoRender ?? true;
 
@@ -109,7 +107,9 @@ export class CalendarView {
       );
 
       // 6. 플러그인 메시지 처리
-      const messageTransactions = this.pluginManager.processMessages(this.state);
+      const messageTransactions = this.pluginManager.processMessages(
+        this.state
+      );
       additionalTransactions.push(...messageTransactions);
 
       // 7. 콜백 호출
@@ -123,7 +123,6 @@ export class CalendarView {
 
       // 9. 추가 트랜잭션 재귀 처리
       additionalTransactions.forEach(tr => this.dispatch(tr));
-
     } catch (error) {
       console.error('Error dispatching transaction:', error);
     }
@@ -164,7 +163,6 @@ export class CalendarView {
 
       // 3. 접근성 속성 업데이트
       this.updateAccessibility();
-
     } catch (error) {
       console.error('Error during rendering:', error);
     }
@@ -175,7 +173,7 @@ export class CalendarView {
    */
   onStateChange(callback: (state: CalendarState) => void): () => void {
     this.onStateChangeCallbacks.push(callback);
-    
+
     // 구독 해제 함수 반환
     return () => {
       const index = this.onStateChangeCallbacks.indexOf(callback);
@@ -190,7 +188,7 @@ export class CalendarView {
    */
   onTransaction(callback: (transaction: Transaction) => void): () => void {
     this.onTransactionCallbacks.push(callback);
-    
+
     return () => {
       const index = this.onTransactionCallbacks.indexOf(callback);
       if (index > -1) {
@@ -226,7 +224,7 @@ export class CalendarView {
    */
   addPlugin(plugin: Plugin): void {
     this.pluginManager.register(plugin);
-    
+
     // 플러그인 커맨드 등록
     const commands = plugin.getCommands();
     this.commandManager.registerCommands(commands);
@@ -234,7 +232,11 @@ export class CalendarView {
     // 플러그인 상태 초기화
     if (plugin.spec.state) {
       const initialPluginState = plugin.spec.state.init();
-      this.state = StateUpdater.updatePluginState(this.state, plugin.key, initialPluginState);
+      this.state = StateUpdater.updatePluginState(
+        this.state,
+        plugin.key,
+        initialPluginState
+      );
     }
 
     if (this.autoRender) {
@@ -247,7 +249,7 @@ export class CalendarView {
     if (success) {
       // 플러그인 상태 제거
       this.state = StateUpdater.removePlugin(this.state, pluginKey);
-      
+
       if (this.autoRender) {
         this.render();
       }
@@ -288,12 +290,12 @@ export class CalendarView {
       currentDate: options?.currentDate,
       viewType: options?.viewType,
       timeRange: options?.timeRange,
-      timezone: options?.timezone
+      timezone: options?.timezone,
     });
 
     // 플러그인 상태 초기화
     const pluginStates = new Map(baseState.pluginStates);
-    
+
     for (const plugin of this.pluginManager.getAll()) {
       if (plugin.spec.state) {
         const initialState = plugin.spec.state.init();
@@ -304,7 +306,7 @@ export class CalendarView {
     return {
       ...baseState,
       ...options,
-      pluginStates
+      pluginStates,
     };
   }
 
@@ -326,20 +328,23 @@ export class CalendarView {
   /**
    * 코어 트랜잭션 적용
    */
-  private applyCoreTransaction(transaction: Transaction, state: CalendarState): CalendarState {
+  private applyCoreTransaction(
+    transaction: Transaction,
+    state: CalendarState
+  ): CalendarState {
     switch (transaction.type) {
       case 'SELECT_DATE':
         return StateUpdater.updateCurrentDate(state, transaction.payload.date);
-      
+
       case 'CHANGE_MONTH':
         return StateUpdater.navigateMonth(state, transaction.payload.direction);
-      
+
       case 'CHANGE_VIEW':
         return StateUpdater.updateViewType(state, transaction.payload.viewType);
-      
+
       case 'CHANGE_TIMEZONE':
         return StateUpdater.updateTimezone(state, transaction.payload.timezone);
-      
+
       default:
         return state;
     }
@@ -348,7 +353,10 @@ export class CalendarView {
   /**
    * 플러그인 트랜잭션 적용
    */
-  private applyPluginTransactions(transaction: Transaction, state: CalendarState): CalendarState {
+  private applyPluginTransactions(
+    transaction: Transaction,
+    state: CalendarState
+  ): CalendarState {
     const newPluginStates = new Map(state.pluginStates);
 
     for (const plugin of this.pluginManager.getAll()) {
@@ -363,7 +371,7 @@ export class CalendarView {
 
     return {
       ...state,
-      pluginStates: newPluginStates
+      pluginStates: newPluginStates,
     };
   }
 
@@ -376,7 +384,7 @@ export class CalendarView {
       const mouseEvent = event as MouseEvent;
       const target = mouseEvent.target as HTMLElement;
       const dateElement = target.closest('[data-date]') as HTMLElement;
-      
+
       if (dateElement) {
         const dateStr = dateElement.getAttribute('data-date');
         if (dateStr) {
@@ -422,8 +430,12 @@ export class CalendarView {
    * 날짜 클릭 처리
    */
   private handleDateClick(date: Date, event: MouseEvent): void {
-    const handled = this.pluginManager.handleEvent('dateClick', { date, event }, this.state);
-    
+    const handled = this.pluginManager.handleEvent(
+      'dateClick',
+      { date, event },
+      this.state
+    );
+
     if (!handled) {
       // 기본 날짜 선택 동작
       this.execCommand('selectDate', date);
@@ -434,8 +446,12 @@ export class CalendarView {
    * 키보드 이벤트 처리
    */
   private handleKeyDown(event: KeyboardEvent): void {
-    const handled = this.pluginManager.handleEvent('keyDown', { event }, this.state);
-    
+    const handled = this.pluginManager.handleEvent(
+      'keyDown',
+      { event },
+      this.state
+    );
+
     if (!handled) {
       // 기본 키보드 네비게이션
       this.handleDefaultKeyboard(event);
@@ -514,9 +530,9 @@ export class CalendarView {
   private renderCalendarGrid(): string {
     const { days } = this.state;
     const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
+
     let html = '<table class="calendar-grid"><thead><tr>';
-    
+
     // 요일 헤더
     for (const weekday of weekdays) {
       html += `<th class="calendar-weekday">${weekday}</th>`;
@@ -527,7 +543,7 @@ export class CalendarView {
     let currentWeek: string[] = [];
     for (const day of days) {
       const dayOfWeek = day.date.getDay();
-      
+
       if (dayOfWeek === 0 && currentWeek.length > 0) {
         // 새로운 주 시작
         html += `<tr>${currentWeek.join('')}</tr>`;
@@ -537,8 +553,10 @@ export class CalendarView {
       const classes = [
         'calendar-day',
         day.isToday ? 'today' : '',
-        day.isWeekend ? 'weekend' : ''
-      ].filter(Boolean).join(' ');
+        day.isWeekend ? 'weekend' : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
 
       currentWeek.push(`
         <td class="${classes}" 
@@ -563,7 +581,7 @@ export class CalendarView {
   private formatCurrentMonth(): string {
     return this.state.currentDate.toLocaleDateString('ko-KR', {
       year: 'numeric',
-      month: 'long'
+      month: 'long',
     });
   }
 
@@ -589,10 +607,12 @@ export class CalendarView {
    */
   private bindNavigationEvents(): void {
     const commandButtons = this.element.querySelectorAll('[data-command]');
-    
+
     commandButtons.forEach(button => {
-      button.addEventListener('click', (event) => {
-        const command = (event.target as HTMLElement).getAttribute('data-command');
+      button.addEventListener('click', event => {
+        const command = (event.target as HTMLElement).getAttribute(
+          'data-command'
+        );
         if (command) {
           this.execCommand(command);
         }
@@ -605,7 +625,7 @@ export class CalendarView {
    */
   private registerDateElements(): void {
     const dateElements = this.element.querySelectorAll('[data-date]');
-    
+
     dateElements.forEach(element => {
       const dateStr = element.getAttribute('data-date');
       if (dateStr) {

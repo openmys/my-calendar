@@ -3,10 +3,10 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { 
-  createCustomPlugin, 
-  PluginTemplates, 
-  PluginHelpers 
+import {
+  createCustomPlugin,
+  PluginTemplates,
+  PluginHelpers,
 } from '../plugin-factory';
 import { CalendarStateFactory } from '../../core/state';
 import type { CalendarState } from '@/types';
@@ -17,11 +17,11 @@ const createMockCalendarState = (): CalendarState => ({
   viewType: 'month' as const,
   timeRange: {
     start: new Date('2024-01-01'),
-    end: new Date('2024-01-31')
+    end: new Date('2024-01-31'),
   },
   days: [],
   pluginStates: new Map(),
-  timezone: 'UTC'
+  timezone: 'UTC',
 });
 
 describe('createCustomPlugin', () => {
@@ -31,8 +31,8 @@ describe('createCustomPlugin', () => {
       initialState: {
         isEnabled: true,
         data: {},
-        settings: { theme: 'light' }
-      }
+        settings: { theme: 'light' },
+      },
     });
 
     expect(plugin).toBeDefined();
@@ -43,24 +43,24 @@ describe('createCustomPlugin', () => {
     const plugin = createCustomPlugin({
       key: 'testPlugin',
       stateHandlers: {
-        'TEST_ACTION': (state, payload) => ({
-          data: { ...state.data, ...payload }
-        })
-      }
+        TEST_ACTION: (state, payload) => ({
+          data: { ...state.data, ...payload },
+        }),
+      },
     });
 
     const initialState = CalendarStateFactory.create([plugin]);
     const pluginState = plugin.getState(initialState);
-    
+
     expect(pluginState).toBeDefined();
-    
+
     if (pluginState) {
       const newState = pluginState.apply({
         type: 'TEST_ACTION',
         payload: { testValue: 42 },
-        meta: new Map()
+        meta: new Map(),
       });
-      
+
       expect(newState.value.data).toEqual({ testValue: 42 });
     }
   });
@@ -73,11 +73,11 @@ describe('createCustomPlugin', () => {
           dispatch?.({
             type: 'TEST_ACTION',
             payload: { value },
-            meta: new Map()
+            meta: new Map(),
           });
           return true;
-        }
-      }
+        },
+      },
     });
 
     const commands = plugin.spec.commands?.(plugin);
@@ -88,7 +88,7 @@ describe('createCustomPlugin', () => {
   it('should handle dependencies correctly', () => {
     const plugin = createCustomPlugin({
       key: 'testPlugin',
-      dependencies: ['range', 'events']
+      dependencies: ['range', 'events'],
     });
 
     expect(plugin.spec.dependencies).toEqual(['range', 'events']);
@@ -97,7 +97,7 @@ describe('createCustomPlugin', () => {
   it('should set priority correctly', () => {
     const plugin = createCustomPlugin({
       key: 'testPlugin',
-      priority: 200
+      priority: 200,
     });
 
     expect(plugin.spec.priority).toBe(200);
@@ -111,14 +111,14 @@ describe('PluginTemplates', () => {
       const plugin = PluginTemplates.createHighlightPlugin({
         key: 'holidays',
         highlightDates: testDates,
-        highlightClass: 'holiday'
+        highlightClass: 'holiday',
       });
 
       expect(plugin.spec.key).toBe('holidays');
-      
+
       const initialState = CalendarStateFactory.create([plugin]);
       const pluginState = plugin.getState(initialState);
-      
+
       expect(pluginState?.value.highlightDates).toEqual(testDates);
       expect(pluginState?.value.highlightClass).toBe('holiday');
     });
@@ -126,7 +126,7 @@ describe('PluginTemplates', () => {
     it('should handle add highlight command', () => {
       const plugin = PluginTemplates.createHighlightPlugin({
         key: 'highlights',
-        highlightDates: []
+        highlightDates: [],
       });
 
       const commands = plugin.spec.commands?.(plugin);
@@ -134,58 +134,61 @@ describe('PluginTemplates', () => {
 
       const mockDispatch = vi.fn();
       const newDate = new Date('2024-06-15');
-      
+
       const command = commands!.addHighlight;
       expect(typeof command).toBe('function');
       const result = command(newDate)(createMockCalendarState(), mockDispatch);
-      
+
       expect(result).toBe(true);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'ADD_HIGHLIGHT_DATE',
         payload: { date: newDate },
-        meta: new Map([['source', 'highlights']])
+        meta: new Map([['source', 'highlights']]),
       });
     });
 
     it('should handle remove highlight command', () => {
       const plugin = PluginTemplates.createHighlightPlugin({
         key: 'highlights',
-        highlightDates: [new Date('2024-01-01')]
+        highlightDates: [new Date('2024-01-01')],
       });
 
       const commands = plugin.spec.commands?.(plugin);
       const mockDispatch = vi.fn();
       const dateToRemove = new Date('2024-01-01');
-      
+
       const command = commands!.removeHighlight;
       expect(typeof command).toBe('function');
-      const result = command(dateToRemove)(createMockCalendarState(), mockDispatch);
-      
+      const result = command(dateToRemove)(
+        createMockCalendarState(),
+        mockDispatch
+      );
+
       expect(result).toBe(true);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'REMOVE_HIGHLIGHT_DATE',
         payload: { date: dateToRemove },
-        meta: new Map([['source', 'highlights']])
+        meta: new Map([['source', 'highlights']]),
       });
     });
 
     it('should clear all highlights', () => {
       const plugin = PluginTemplates.createHighlightPlugin({
-        key: 'highlights'
+        key: 'highlights',
       });
 
       const commands = plugin.spec.commands?.(plugin);
       const mockDispatch = vi.fn();
-      
+
       const command = commands!.clearHighlights;
       expect(typeof command).toBe('function');
       const result = command()(createMockCalendarState(), mockDispatch);
-      
+
       expect(result).toBe(true);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'CLEAR_HIGHLIGHTS',
         payload: {},
-        meta: new Map([['source', 'highlights']])
+        meta: new Map([['source', 'highlights']]),
       });
     });
   });
@@ -195,14 +198,14 @@ describe('PluginTemplates', () => {
       const onCountChange = vi.fn();
       const plugin = PluginTemplates.createClickCounterPlugin({
         key: 'clickCounter',
-        onCountChange
+        onCountChange,
       });
 
       expect(plugin.spec.key).toBe('clickCounter');
-      
+
       const initialState = CalendarStateFactory.create([plugin]);
       const pluginState = plugin.getState(initialState);
-      
+
       expect(pluginState?.value.clickCounts).toBeInstanceOf(Map);
     });
 
@@ -210,18 +213,18 @@ describe('PluginTemplates', () => {
       const onCountChange = vi.fn();
       const plugin = PluginTemplates.createClickCounterPlugin({
         key: 'clickCounter',
-        onCountChange
+        onCountChange,
       });
 
       const initialState = CalendarStateFactory.create([plugin]);
       const pluginState = plugin.getState(initialState);
-      
+
       if (pluginState) {
         const testDate = new Date('2024-01-15');
         const newState = pluginState.apply({
           type: 'INCREMENT_DATE_CLICK',
           payload: { date: testDate },
-          meta: new Map()
+          meta: new Map(),
         });
 
         const dateKey = testDate.toISOString().split('T')[0];
@@ -238,14 +241,14 @@ describe('PluginTemplates', () => {
         key: 'disabler',
         disabledDates,
         disableWeekends: true,
-        disablePastDates: false
+        disablePastDates: false,
       });
 
       expect(plugin.spec.key).toBe('disabler');
-      
+
       const initialState = CalendarStateFactory.create([plugin]);
       const pluginState = plugin.getState(initialState);
-      
+
       expect(pluginState?.value.disabledDates).toEqual(disabledDates);
       expect(pluginState?.value.disableWeekends).toBe(true);
       expect(pluginState?.value.disablePastDates).toBe(false);
@@ -255,7 +258,7 @@ describe('PluginTemplates', () => {
       const disabledDate = new Date('2024-01-01');
       const plugin = PluginTemplates.createDateDisablerPlugin({
         key: 'disabler',
-        disabledDates: [disabledDate]
+        disabledDates: [disabledDate],
       });
 
       const eventHandlers = plugin.spec.props;
@@ -263,14 +266,14 @@ describe('PluginTemplates', () => {
 
       // 비활성화된 날짜 클릭 테스트
       const mockEvent = {
-        preventDefault: vi.fn()
+        preventDefault: vi.fn(),
       } as any;
 
       const initialState = CalendarStateFactory.create([plugin]);
       const result = eventHandlers!.handleDateClick!(
-        disabledDate, 
-        mockEvent, 
-        initialState, 
+        disabledDate,
+        mockEvent,
+        initialState,
         plugin
       );
 
@@ -284,8 +287,8 @@ describe('PluginHelpers', () => {
   describe('DateUtils', () => {
     it('should identify weekends correctly', () => {
       const saturday = new Date('2024-01-06'); // 토요일
-      const sunday = new Date('2024-01-07');   // 일요일
-      const monday = new Date('2024-01-08');   // 월요일
+      const sunday = new Date('2024-01-07'); // 일요일
+      const monday = new Date('2024-01-08'); // 월요일
 
       expect(PluginHelpers.DateUtils.isWeekend(saturday)).toBe(true);
       expect(PluginHelpers.DateUtils.isWeekend(sunday)).toBe(true);
@@ -337,7 +340,10 @@ describe('PluginHelpers', () => {
 
     it('should remove items from arrays', () => {
       const state = { items: [1, 2, 3, 4] };
-      const updater = PluginHelpers.StateHelpers.removeFromArray('items', (item: unknown) => (item as number) > 2);
+      const updater = PluginHelpers.StateHelpers.removeFromArray(
+        'items',
+        (item: unknown) => (item as number) > 2
+      );
       const result = updater(state);
 
       expect(result).toEqual({ items: [1, 2] });
@@ -348,12 +354,12 @@ describe('PluginHelpers', () => {
       const updater = PluginHelpers.StateHelpers.updateObject('settings');
       const result = updater(state, { theme: 'dark', newProp: 'value' });
 
-      expect(result).toEqual({ 
-        settings: { 
-          theme: 'dark', 
-          size: 'medium', 
-          newProp: 'value' 
-        } 
+      expect(result).toEqual({
+        settings: {
+          theme: 'dark',
+          size: 'medium',
+          newProp: 'value',
+        },
       });
     });
   });
@@ -361,40 +367,50 @@ describe('PluginHelpers', () => {
   describe('DecorationHelpers', () => {
     it('should create highlight decorations', () => {
       const date = new Date('2024-01-15');
-      const decoration = PluginHelpers.DecorationHelpers.createHighlight(date, 'custom-highlight');
+      const decoration = PluginHelpers.DecorationHelpers.createHighlight(
+        date,
+        'custom-highlight'
+      );
 
       expect(decoration).toEqual({
         type: 'highlight',
         from: date,
-        spec: { class: 'custom-highlight' }
+        spec: { class: 'custom-highlight' },
       });
     });
 
     it('should create badge decorations', () => {
       const date = new Date('2024-01-15');
-      const decoration = PluginHelpers.DecorationHelpers.createBadge(date, 'New', 'custom-badge');
+      const decoration = PluginHelpers.DecorationHelpers.createBadge(
+        date,
+        'New',
+        'custom-badge'
+      );
 
       expect(decoration).toEqual({
         type: 'badge',
         from: date,
-        spec: { 
+        spec: {
           class: 'custom-badge',
-          'data-badge': 'New'
-        }
+          'data-badge': 'New',
+        },
       });
     });
 
     it('should create tooltip decorations', () => {
       const date = new Date('2024-01-15');
-      const decoration = PluginHelpers.DecorationHelpers.createTooltip(date, 'Tooltip text');
+      const decoration = PluginHelpers.DecorationHelpers.createTooltip(
+        date,
+        'Tooltip text'
+      );
 
       expect(decoration).toEqual({
         type: 'tooltip',
         from: date,
-        spec: { 
+        spec: {
           'data-tooltip': 'Tooltip text',
-          title: 'Tooltip text'
-        }
+          title: 'Tooltip text',
+        },
       });
     });
   });
@@ -405,21 +421,21 @@ describe('Plugin Integration Tests', () => {
   it('should work with multiple custom plugins', () => {
     const highlightPlugin = PluginTemplates.createHighlightPlugin({
       key: 'highlights',
-      highlightDates: [new Date('2024-01-01')]
+      highlightDates: [new Date('2024-01-01')],
     });
 
     const counterPlugin = PluginTemplates.createClickCounterPlugin({
-      key: 'counter'
+      key: 'counter',
     });
 
     const customPlugin = createCustomPlugin({
       key: 'custom',
       dependencies: ['highlights'],
       stateHandlers: {
-        'CUSTOM_ACTION': (_state, payload) => ({
-          data: { customValue: payload.value }
-        })
-      }
+        CUSTOM_ACTION: (_state, payload) => ({
+          data: { customValue: payload.value },
+        }),
+      },
     });
 
     const plugins = [highlightPlugin, counterPlugin, customPlugin];
@@ -438,19 +454,19 @@ describe('Plugin Integration Tests', () => {
     const plugin1 = createCustomPlugin({
       key: 'plugin1',
       stateHandlers: {
-        'SHARED_ACTION': (state, payload) => ({
-          data: { ...state.data, plugin1Data: payload.value }
-        })
-      }
+        SHARED_ACTION: (state, payload) => ({
+          data: { ...state.data, plugin1Data: payload.value },
+        }),
+      },
     });
 
     const plugin2 = createCustomPlugin({
       key: 'plugin2',
       stateHandlers: {
-        'SHARED_ACTION': (state, payload) => ({
-          data: { ...state.data, plugin2Data: payload.value * 2 }
-        })
-      }
+        SHARED_ACTION: (state, payload) => ({
+          data: { ...state.data, plugin2Data: payload.value * 2 },
+        }),
+      },
     });
 
     const plugins = [plugin1, plugin2];
@@ -464,13 +480,13 @@ describe('Plugin Integration Tests', () => {
       const newState1 = plugin1State.apply({
         type: 'SHARED_ACTION',
         payload: { value: 10 },
-        meta: new Map()
+        meta: new Map(),
       });
 
       const newState2 = plugin2State.apply({
         type: 'SHARED_ACTION',
         payload: { value: 10 },
-        meta: new Map()
+        meta: new Map(),
       });
 
       expect(newState1.value.data.plugin1Data).toBe(10);

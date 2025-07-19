@@ -15,15 +15,15 @@ export interface CreateCalendarOptions {
   initialDate?: Date;
   viewType?: ViewType;
   timezone?: string;
-  
+
   // 플러그인 설정
   plugins?: Plugin[];
   enableRange?: boolean | RangeOptions;
   enableEvents?: boolean | EventOptions;
-  
+
   // 렌더링 설정
   autoRender?: boolean;
-  
+
   // 초기 상태
   initialState?: Partial<CalendarState>;
 }
@@ -31,7 +31,9 @@ export interface CreateCalendarOptions {
 /**
  * 캘린더 생성 팩토리 함수
  */
-export function createCalendar(options: CreateCalendarOptions = {}): CalendarView {
+export function createCalendar(
+  options: CreateCalendarOptions = {}
+): CalendarView {
   const {
     element = document.createElement('div'),
     initialDate = new Date(),
@@ -41,7 +43,7 @@ export function createCalendar(options: CreateCalendarOptions = {}): CalendarVie
     enableRange = true,
     enableEvents = true,
     autoRender = true,
-    initialState = {}
+    initialState = {},
   } = options;
 
   // 플러그인 목록 구성
@@ -67,8 +69,8 @@ export function createCalendar(options: CreateCalendarOptions = {}): CalendarVie
       currentDate: initialDate,
       viewType,
       timezone,
-      ...initialState
-    }
+      ...initialState,
+    },
   };
 
   return new CalendarView(element, viewOptions);
@@ -77,12 +79,15 @@ export function createCalendar(options: CreateCalendarOptions = {}): CalendarVie
 /**
  * 미니멀 캘린더 생성 (플러그인 없음)
  */
-export function createMinimalCalendar(element: HTMLElement, initialDate?: Date): CalendarView {
+export function createMinimalCalendar(
+  element: HTMLElement,
+  initialDate?: Date
+): CalendarView {
   return createCalendar({
     element,
     initialDate,
     enableRange: false,
-    enableEvents: false
+    enableEvents: false,
   });
 }
 
@@ -103,7 +108,7 @@ export function createFullCalendar(
     initialDate: options.initialDate,
     viewType: options.viewType,
     enableRange: options.rangeOptions ?? true,
-    enableEvents: options.eventOptions ?? true
+    enableEvents: options.eventOptions ?? true,
   });
 }
 
@@ -121,7 +126,7 @@ export function createDatePicker(
     element,
     initialDate: options.initialDate,
     enableRange: options.rangeOptions ?? true,
-    enableEvents: false
+    enableEvents: false,
   });
 }
 
@@ -141,6 +146,6 @@ export function createEventCalendar(
     initialDate: options.initialDate,
     viewType: options.viewType,
     enableRange: false,
-    enableEvents: options.eventOptions ?? true
+    enableEvents: options.eventOptions ?? true,
   });
 }

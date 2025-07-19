@@ -6,16 +6,11 @@ export { useCalendar } from './use-calendar';
 export { Calendar } from './calendar';
 export { CalendarProvider, useCalendarContext } from './calendar-context';
 
-export type { 
-  UseCalendarOptions, 
-  UseCalendarReturn 
-} from './use-calendar';
+export type { UseCalendarOptions, UseCalendarReturn } from './use-calendar';
 
-export type { 
-  CalendarProps 
-} from './calendar';
+export type { CalendarProps } from './calendar';
 
-export type { 
+export type {
   CalendarContextValue,
-  CalendarProviderProps 
+  CalendarProviderProps,
 } from './calendar-context';
