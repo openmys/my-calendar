@@ -9,11 +9,23 @@ on:
       - '*.md'
   workflow_dispatch:
 
-jobs:
-  docs:
-    name: 문서 생성 및 배포
-    runs-on: ubuntu-latest
+# GitHub Pages 배포를 위한 권한 설정
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
+# 동시 실행 제한 (한 번에 하나의 배포만)
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 문서 빌드 Job
+  build:
+    name: API 문서 빌드
+    runs-on: ubuntu-latest
+    
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
@@ -36,22 +48,38 @@ jobs:
         run: pnpm install
 
       - name: TypeDoc 설치
-        run: pnpm add -D typedoc typedoc-plugin-markdown
+        run: pnpm add -D typedoc
 
       - name: API 문서 생성
         run: |
           npx typedoc src/index.ts \
-            --out docs/api \
-            --plugin typedoc-plugin-markdown \
-            --theme markdown \
+            --out docs \
+            --name "@openmys/my-calendar API Documentation" \
             --readme README.md \
             --includeVersion \
-            --excludePrivate
+            --excludePrivate \
+            --exclude "**/*.test.ts" \
+            --exclude "**/__tests__/**" \
+            --theme default
 
-      - name: GitHub Pages 배포
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
+      - name: GitHub Pages 설정
+        uses: actions/configure-pages@v4
+
+      - name: 빌드된 사이트 업로드
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.DOCS_TOKEN }}
-          publish_dir: ./docs
-          force_orphan: true
+          path: ./docs
+
+  # GitHub Pages 배포 Job
+  deploy:
+    name: GitHub Pages 배포
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: GitHub Pages에 배포
+        id: deployment
+        uses: actions/deploy-pages@v4
