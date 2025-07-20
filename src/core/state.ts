@@ -94,7 +94,7 @@ export class CalendarStateFactory {
   /**
    * 날짜 범위에 따른 CalendarDay 배열 생성
    */
-  private static generateDays(timeRange: TimeRange): CalendarDay[] {
+  static generateDays(timeRange: TimeRange): CalendarDay[] {
     const days: CalendarDay[] = [];
     const current = new Date(timeRange.start);
     const today = new Date();
@@ -104,6 +104,7 @@ export class CalendarStateFactory {
         date: new Date(current),
         isToday: this.isSameDay(current, today),
         isWeekend: current.getDay() === 0 || current.getDay() === 6,
+        isCurrentMonth: current.getMonth() === timeRange.start.getMonth(),
         metadata: new Map(),
       };
 
@@ -187,7 +188,7 @@ export class StateUpdater {
       ...state,
       currentDate: new Date(newDate),
       timeRange: newTimeRange,
-      days: CalendarStateFactory['generateDays'](newTimeRange),
+      days: CalendarStateFactory.generateDays(newTimeRange),
     };
 
     StateValidator.validateCalendarState(newState);
@@ -210,7 +211,7 @@ export class StateUpdater {
       ...state,
       viewType,
       timeRange: newTimeRange,
-      days: CalendarStateFactory['generateDays'](newTimeRange),
+      days: CalendarStateFactory.generateDays(newTimeRange),
     };
 
     StateValidator.validateCalendarState(newState);

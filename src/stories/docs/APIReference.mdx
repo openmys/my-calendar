@@ -1,0 +1,325 @@
+export default {
+  title: 'API 문서/API 레퍼런스',
+  parameters: {
+    docs: {
+      page: () => null,
+    },
+  },
+};
+
+# API 레퍼런스
+
+ProseMirror 스타일 헤드리스 캘린더 라이브러리의 전체 API 문서입니다.
+
+## 📦 메인 익스포트
+
+### createCalendar()
+
+헤드리스 캘린더 인스턴스를 생성합니다.
+
+```typescript
+function createCalendar(options: CalendarOptions): CalendarView
+
+interface CalendarOptions {
+  plugins?: Plugin[];
+  initialDate?: Date;
+  locale?: string;
+  timezone?: string;
+}
+```
+
+**사용 예시:**
+
+```typescript
+import { createCalendar, createRangePlugin } from '@openmys/my-calendar';
+
+const calendar = createCalendar({
+  plugins: [createRangePlugin()],
+  initialDate: new Date(),
+  locale: 'ko-KR',
+});
+```
+
+### useCalendar()
+
+React 환경에서 헤드리스 캘린더를 사용하기 위한 훅입니다.
+
+```typescript
+function useCalendar(options: UseCalendarOptions): UseCalendarReturn
+
+interface UseCalendarOptions {
+  plugins: Plugin[];
+  initialDate?: Date;
+  locale?: string;
+}
+
+interface UseCalendarReturn {
+  state: CalendarState;
+  execCommand: (command: string, ...args: any[]) => boolean;
+  decorations: DecorationManager;
+}
+```
+
+**사용 예시:**
+
+```typescript
+import { useCalendar, createRangePlugin } from '@openmys/my-calendar/react';
+
+function MyCalendar() {
+  const { state, execCommand, decorations } = useCalendar({
+    plugins: [createRangePlugin({ selectionMode: 'range' })]
+  });
+
+  return (
+    <div>
+      {state.days.map(day => (
+        <div 
+          key={day.date.getTime()}
+          onClick={() => execCommand('selectDate', day.date)}
+        >
+          {day.date.getDate()}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 🔌 플러그인 API
+
+### createRangePlugin()
+
+날짜 범위 선택 기능을 제공하는 플러그인입니다.
+
+```typescript
+function createRangePlugin(options?: RangeOptions): Plugin<RangeState>
+
+interface RangeOptions {
+  selectionMode?: 'single' | 'range' | 'multiple';
+  maxRange?: number;
+  minRange?: number;
+  allowPastDates?: boolean;
+  allowFutureDates?: boolean;
+}
+
+interface RangeState {
+  selectedRange: { start: Date; end: Date } | null;
+  isSelecting: boolean;
+  selectionStart: Date | null;
+  hoveredDate: Date | null;
+  selectedDates: Date[];
+  options: RangeOptions;
+}
+```
+
+### createEventPlugin()
+
+이벤트 관리 기능을 제공하는 플러그인입니다.
+
+```typescript
+function createEventPlugin(options?: EventOptions): Plugin<EventState>
+
+interface EventOptions {
+  allowOverlap?: boolean;
+  maxEventsPerDay?: number;
+  defaultDuration?: number;
+  allowPastEvents?: boolean;
+  categories?: string[];
+  defaultEventColor?: string;
+}
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  allDay?: boolean;
+  color?: string;
+  category?: string;
+  metadata?: Record<string, any>;
+}
+```
+
+---
+
+## 🏗️ 코어 타입
+
+### CalendarState
+
+캘린더의 전역 상태를 나타냅니다.
+
+```typescript
+interface CalendarState {
+  currentDate: Date;
+  viewType: 'month' | 'week' | 'day';
+  timeRange: TimeRange;
+  days: CalendarDay[];
+  pluginStates: Map<string, PluginState<any>>;
+  timezone: string;
+  locale: string;
+  isLoading: boolean;
+  error: CalendarError | null;
+}
+
+interface CalendarDay {
+  date: Date;
+  isWeekend: boolean;
+  isToday: boolean;
+  isCurrentMonth: boolean;
+  isHoliday?: boolean;
+  metadata?: Map<string, any>;
+}
+```
+
+### Transaction
+
+상태 변경을 위한 트랜잭션 타입입니다.
+
+```typescript
+interface Transaction {
+  type: string;
+  payload: any;
+  meta: Map<string, any>;
+  timestamp: number;
+  source: 'user' | 'plugin' | 'system';
+}
+```
+
+---
+
+## 🎨 데코레이션 시스템
+
+### DecorationSet
+
+UI 렌더링을 위한 데코레이션 시스템입니다.
+
+```typescript
+class DecorationSet {
+  decorations: Decoration[];
+  
+  add(decoration: Decoration): DecorationSet;
+  remove(predicate: (decoration: Decoration) => boolean): DecorationSet;
+  find(predicate: (decoration: Decoration) => boolean): Decoration[];
+  getDecorationsForDate(date: Date): Decoration[];
+}
+
+interface Decoration {
+  type: 'class' | 'style' | 'widget' | 'attribute';
+  from: Date;
+  to?: Date;
+  spec: any;
+  inclusive: boolean;
+}
+```
+
+---
+
+## 🛠️ 유틸리티 함수
+
+### CalendarUtils
+
+캘린더 관련 유틸리티 함수들입니다.
+
+```typescript
+class CalendarUtils {
+  static getClassNameFromDecorations(decorations: Decoration[]): string;
+  static getStyleFromDecorations(decorations: Decoration[]): CSSProperties;
+  static generateDaysForMonth(year: number, month: number): CalendarDay[];
+  static isDateInRange(date: Date, start: Date, end: Date): boolean;
+  static formatDate(date: Date, format: string, locale?: string): string;
+  static addDays(date: Date, days: number): Date;
+  static isSameDay(date1: Date, date2: Date): boolean;
+  static isSameMonth(date1: Date, date2: Date): boolean;
+}
+```
+
+---
+
+## 📘 사용 가이드
+
+### 기본 사용법
+
+```typescript
+import { useCalendar, createRangePlugin } from '@openmys/my-calendar/react';
+
+function BasicCalendar() {
+  const { state, execCommand } = useCalendar({
+    plugins: [createRangePlugin()]
+  });
+
+  return (
+    <div className="calendar">
+      {state.days.map(day => (
+        <button
+          key={day.date.getTime()}
+          onClick={() => execCommand('selectDate', day.date)}
+        >
+          {day.date.getDate()}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+### 고급 사용법 (헤드리스 패턴)
+
+```typescript
+import { useCalendar, createRangePlugin, createEventPlugin } from '@openmys/my-calendar/react';
+
+function AdvancedCalendar() {
+  const { state, execCommand, decorations } = useCalendar({
+    plugins: [
+      createRangePlugin({ selectionMode: 'range', maxRange: 14 }),
+      createEventPlugin({ allowOverlap: false })
+    ]
+  });
+
+  return (
+    <div className="advanced-calendar">
+      <header>
+        <button onClick={() => execCommand('goToPreviousMonth')}>
+          Previous
+        </button>
+        <h2>{state.currentDate.toLocaleDateString()}</h2>
+        <button onClick={() => execCommand('goToNextMonth')}>
+          Next
+        </button>
+      </header>
+      
+      <div className="calendar-grid">
+        {state.days.map(day => {
+          const dayDecorations = decorations.getDecorationsForDate(day.date);
+          
+          return (
+            <div
+              key={day.date.getTime()}
+              className={`day ${CalendarUtils.getClassNameFromDecorations(dayDecorations)}`}
+              style={CalendarUtils.getStyleFromDecorations(dayDecorations)}
+              onClick={() => execCommand('selectDate', day.date)}
+            >
+              {day.date.getDate()}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## 🔍 더 많은 정보
+
+- **라이브 예시**: 실제 동작하는 캘린더 컴포넌트들
+- **플러그인 데모**: 각 플러그인의 상세한 사용법  
+- **헤드리스 예시**: 다양한 커스텀 UI 구현 방법
+- **GitHub 저장소**: 소스 코드 및 이슈 트래킹
+
+**TypeScript 지원**: 모든 API는 완전한 TypeScript 타입 정의를 제공합니다.  
+**Tree Shaking**: 사용하지 않는 기능은 자동으로 번들에서 제외됩니다.  
+**SSR 지원**: 서버 사이드 렌더링을 완전 지원합니다.

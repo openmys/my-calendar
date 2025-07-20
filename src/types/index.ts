@@ -14,6 +14,7 @@ export interface CalendarDay {
   hours?: CalendarHour[];
   isToday: boolean;
   isWeekend: boolean;
+  isCurrentMonth: boolean;
   isHoliday?: boolean;
   metadata?: Map<string, any>;
 }

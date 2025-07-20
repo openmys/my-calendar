@@ -43,9 +43,23 @@ export function useCalendar(
   const decorationManagerRef = useRef<DecorationManager>(
     new DecorationManager()
   );
+  const optionsRef = useRef(options);
 
-  // 옵션 메모이제이션
-  const memoizedOptions = useMemo(() => options, [options]);
+  // options ref 업데이트
+  useEffect(() => {
+    optionsRef.current = options;
+  });
+
+  // 옵션을 깊은 메모이제이션으로 처리하여 무한 리렌더링 방지
+  const memoizedOptions = useMemo(() => {
+    return {
+      plugins: options.plugins ?? [],
+      initialState: options.initialState,
+    };
+  }, [
+    options.plugins, // 배열 참조 - 스토리에서 고정된 배열이므로 안전
+    options.initialState,
+  ]);
 
   // 캘린더 초기화
   useEffect(() => {
@@ -68,12 +82,14 @@ export function useCalendar(
       const decorations = calendar.getDecorations();
       decorationManagerRef.current.updateDecorations(decorations);
 
-      options.onStateChange?.(newState);
+      // ref를 통해 최신 콜백 호출
+      optionsRef.current.onStateChange?.(newState);
     });
 
     // 트랜잭션 리스너 등록
     const unsubscribeTransaction = calendar.onTransaction(transaction => {
-      options.onTransaction?.(transaction);
+      // ref를 통해 최신 콜백 호출
+      optionsRef.current.onTransaction?.(transaction);
     });
 
     // 정리 함수
@@ -87,7 +103,6 @@ export function useCalendar(
       }
       setIsReady(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedOptions]);
 
   // 커맨드 실행 함수

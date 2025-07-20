@@ -1,0 +1,88 @@
+# ProseMirror 스타일 헤드리스 캘린더 라이브러리
+
+export default {
+  title: '소개/헤드리스 캘린더 라이브러리',
+  parameters: {
+    docs: {
+      page: () => (
+        <div>
+          <h1>ProseMirror 스타일 헤드리스 캘린더 라이브러리</h1>
+        </div>
+      ),
+    },
+  },
+};
+
+# ProseMirror 스타일 헤드리스 캘린더 라이브러리
+
+**진정한 헤드리스 아키텍처로 구축된 무한 확장 가능한 캘린더 라이브러리**
+
+## 🎯 핵심 특징
+
+### 헤드리스 디자인
+- **완전한 UI/로직 분리**: 코어는 DOM을 전혀 알지 못함
+- **프레임워크 독립성**: React, Vue, Svelte 등 어디서든 사용 가능  
+- **무한 커스터마이징**: 개발자가 모든 UI를 직접 제어
+- **작은 번들 사이즈**: UI 코드가 코어에 포함되지 않음
+
+### ProseMirror 스타일 아키텍처
+- **State System**: 불변 상태 관리와 Transaction 기반 업데이트
+- **Command System**: 사용자 액션을 구조화된 명령으로 변환
+- **Plugin System**: 모듈화된 기능 확장을 위한 플러그인 아키텍처
+- **Decoration System**: 선언적 UI 렌더링 시스템
+
+### 선언적 플러그인 시스템
+```typescript
+// TanStack Table과 동일한 선언적 패턴
+const plugins = useMemo(() => [
+  createRangePlugin({ maxRange: 7 }),
+  createEventPlugin({ allowOverlap: false })
+], []); // 컴포넌트 마운트 시에만 설정
+
+const { state, execCommand, decorations } = useCalendar({ plugins });
+```
+
+## 🚀 사용 패턴
+
+### 기본 사용 (간편함)
+```typescript
+<Calendar plugins={[createRangePlugin()]} />
+```
+
+### 헤드리스 사용 (무한 확장)
+```typescript
+const { state, decorations } = useCalendar({ plugins });
+
+<div className="my-custom-calendar">
+  {state.days.map(day => {
+    const dayDecorations = decorations.getDecorationsForDate(day.date);
+    return (
+      <CustomDayComponent 
+        day={day} 
+        decorations={dayDecorations}
+        style={myCustomStyle}
+      />
+    );
+  })}
+</div>
+```
+
+## 📚 스토리북 구성
+
+이 스토리북에서는 다음과 같은 내용을 확인할 수 있습니다:
+
+1. **캘린더 컴포넌트**: 기본 제공 UI 컴포넌트들
+2. **플러그인 데모**: Range Selection, Event Management 등
+3. **헤드리스 예시**: 커스텀 UI 구현 방법
+4. **API 문서**: TypeDoc으로 생성된 상세 API 문서
+
+## 🔧 TanStack Table과의 비교
+
+| 측면 | TanStack Table | 우리 캘린더 |
+|------|----------------|-------------|
+| 아키텍처 | 헤드리스 테이블 | 헤드리스 캘린더 |
+| 데이터 플로우 | 선언적 컬럼 정의 | 선언적 플러그인 구성 |
+| 커스터마이징 | 완전한 렌더 제어 | 완전한 캘린더 UI 제어 |
+| 확장성 | 컬럼 기반 | 플러그인 기반 |
+
+**헤드리스 패턴의 진정한 가치를 캘린더 도메인에서 구현했습니다!**

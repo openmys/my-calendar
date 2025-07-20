@@ -13,3 +13,6 @@ dist/
 .DS_Store
 .vscode
 .env
+
+*storybook.log
+storybook-static
