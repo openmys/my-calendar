@@ -237,21 +237,6 @@ export class StateUpdater {
     return ImmutableStateManager.deepFreeze(newState);
   }
 
-  /**
-   * 플러그인 제거
-   */
-  static removePlugin(state: CalendarState, pluginId: string): CalendarState {
-    const newPluginStates = new Map(state.pluginStates);
-    newPluginStates.delete(pluginId);
-
-    const newState: CalendarState = {
-      ...state,
-      pluginStates: newPluginStates,
-    };
-
-    StateValidator.validateCalendarState(newState);
-    return ImmutableStateManager.deepFreeze(newState);
-  }
 
   /**
    * 시간대 변경

@@ -185,6 +185,7 @@ export const coreCommands: CommandMap = {
 export class CommandManager {
   private commands: Map<string, Command | ((...args: unknown[]) => Command)> =
     new Map();
+  private pluginCommands: Map<string, Set<string>> = new Map(); // pluginKey -> command names
 
   constructor() {
     this.registerCommands(coreCommands);
@@ -195,17 +196,26 @@ export class CommandManager {
    */
   registerCommand(
     name: string,
-    command: Command | ((...args: unknown[]) => Command)
+    command: Command | ((...args: unknown[]) => Command),
+    pluginKey?: string
   ): void {
     this.commands.set(name, command);
+    
+    // 플러그인 커맨드 추적
+    if (pluginKey) {
+      if (!this.pluginCommands.has(pluginKey)) {
+        this.pluginCommands.set(pluginKey, new Set());
+      }
+      this.pluginCommands.get(pluginKey)!.add(name);
+    }
   }
 
   /**
    * 여러 커맨드 일괄 등록
    */
-  registerCommands(commandMap: CommandMap): void {
+  registerCommands(commandMap: CommandMap, pluginKey?: string): void {
     for (const [name, command] of Object.entries(commandMap)) {
-      this.registerCommand(name, command);
+      this.registerCommand(name, command, pluginKey);
     }
   }
 
@@ -213,7 +223,37 @@ export class CommandManager {
    * 커맨드 제거
    */
   unregisterCommand(name: string): boolean {
+    // 플러그인 커맨드 추적에서도 제거
+    for (const [pluginKey, commandNames] of this.pluginCommands.entries()) {
+      if (commandNames.has(name)) {
+        commandNames.delete(name);
+        if (commandNames.size === 0) {
+          this.pluginCommands.delete(pluginKey);
+        }
+        break;
+      }
+    }
+    
     return this.commands.delete(name);
+  }
+
+  /**
+   * 플러그인의 모든 커맨드 제거
+   */
+  unregisterPluginCommands(pluginKey: string): boolean {
+    const commandNames = this.pluginCommands.get(pluginKey);
+    if (!commandNames) {
+      return false;
+    }
+
+    // 모든 커맨드 제거
+    for (const commandName of commandNames) {
+      this.commands.delete(commandName);
+    }
+
+    // 플러그인 커맨드 추적 제거
+    this.pluginCommands.delete(pluginKey);
+    return true;
   }
 
   /**
@@ -267,10 +307,19 @@ export class CommandManager {
   }
 
   /**
+   * 플러그인 커맨드 목록 조회
+   */
+  getPluginCommands(pluginKey: string): string[] {
+    const commandNames = this.pluginCommands.get(pluginKey);
+    return commandNames ? Array.from(commandNames) : [];
+  }
+
+  /**
    * 모든 커맨드 초기화
    */
   clear(): void {
     this.commands.clear();
+    this.pluginCommands.clear();
     this.registerCommands(coreCommands);
   }
 }

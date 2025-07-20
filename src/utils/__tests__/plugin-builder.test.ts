@@ -532,17 +532,15 @@ describe('Plugin Builder Integration', () => {
         });
         return true;
       })
-      .onDateClick((_date, _event, _state, pluginState) => {
+      .onDateClick((_date, _event, _state, pluginState, calendar) => {
         if (!pluginState.isActive) return false;
 
         // 클릭시 카운터 증가
-        const calendar = (window as any).__calendarInstance;
         calendar?.execCommand('increment', 1);
         return false;
       })
-      .onKeyDown((event, _state, _pluginState) => {
+      .onKeyDown((event, _state, _pluginState, calendar) => {
         if (event.key === 'Space') {
-          const calendar = (window as any).__calendarInstance;
           calendar?.execCommand('toggleActive');
           return true;
         }

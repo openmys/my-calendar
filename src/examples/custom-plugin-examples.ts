@@ -127,12 +127,11 @@ export function createTodoPlugin() {
       return new DecorationSet(decorations);
     },
     eventHandlers: {
-      onDateClick: (date, event, _state, _pluginState) => {
+      onDateClick: (date, event, _state, _pluginState, calendar) => {
         // 더블클릭시 할일 추가 프롬프트
         if (event.detail === 2) {
           const todoText = prompt('할일을 입력하세요:');
           if (todoText) {
-            const calendar = window.__calendarInstance;
             calendar?.execCommand(
               'addTodo',
               date.toISOString().split('T')[0],
@@ -313,9 +312,8 @@ export function createAdvancedCounterPlugin(options: {
       });
       return true;
     })
-    .onDateClick((date, _event, _state, _pluginState) => {
+    .onDateClick((date, _event, _state, _pluginState, calendar) => {
       // 일일 리셋 체크
-      const calendar = window.__calendarInstance;
       calendar?.execCommand('checkDailyReset');
       calendar?.execCommand('incrementCount', date);
       return false;
@@ -382,7 +380,7 @@ export function createNotesPlugin() {
 
       return new DecorationSet(decorations);
     })
-    .onDateClick((date, event, _state, _pluginState) => {
+    .onDateClick((date, event, _state, _pluginState, calendar) => {
       if (event.ctrlKey || event.metaKey) {
         const noteText = prompt('메모를 입력하세요:');
         if (noteText) {
@@ -394,7 +392,6 @@ export function createNotesPlugin() {
             createdAt: new Date(),
           };
 
-          const calendar = window.__calendarInstance;
           calendar?.execCommand('addItem', note);
         }
         return true;
@@ -410,11 +407,10 @@ export function createNotesPlugin() {
 export function createDarkModePlugin() {
   return PluginPresets.stateToggler('darkMode', 'isDarkMode')
     .withInitialState({ isDarkMode: false })
-    .onKeyDown((event, _state, _pluginState) => {
+    .onKeyDown((event, _state, _pluginState, calendar) => {
       // Ctrl+D로 다크모드 토글
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
         event.preventDefault();
-        const calendar = window.__calendarInstance;
         calendar?.execCommand('toggle', 'isDarkMode');
         return true;
       }
@@ -517,8 +513,8 @@ const initialState = CalendarStateFactory.create(plugins);
 const calendarElement = document.getElementById('calendar');
 const calendar = new CalendarView(calendarElement, initialState, plugins);
 
-// 전역 참조 설정 (플러그인에서 사용하기 위해)
-window.__calendarInstance = calendar;
+// 전역 참조는 더 이상 필요하지 않음
+// 플러그인에서 직접 캘린더 인스턴스를 받음
 
 // 커맨드 실행 예시
 calendar.execCommand('addTodo', '2024-01-15', '회의 준비');

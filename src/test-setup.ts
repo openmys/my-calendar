@@ -4,12 +4,6 @@ import { afterEach } from 'vitest';
 afterEach(() => {
   // DOM cleanup if needed
 
-  // Clear global calendar instance
-  if (typeof window !== 'undefined') {
-    (window as any).__calendarInstance = undefined;
-    delete (window as any).__calendarInstance;
-  }
-
   // Clear any timers
   // Note: vi.clearAllTimers() would be called if using vi.useFakeTimers()
 });
