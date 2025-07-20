@@ -282,13 +282,13 @@ export class CommandManager {
             return actualCommand(state, dispatch);
           }
         }
-        
+
         // 인자가 없는 팩토리 함수 처리
         const actualCommand = (command as any)();
         if (typeof actualCommand === 'function') {
           return actualCommand(state, dispatch);
         }
-        
+
         // 직접 커맨드인 경우
         return (command as Command)(state, dispatch);
       }
