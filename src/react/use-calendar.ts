@@ -5,8 +5,9 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { CalendarView, CalendarViewOptions } from '@/core/calendar-view';
-import { CalendarState, Transaction } from '@/types';
+import { CalendarState, Transaction, PluginState } from '@/types';
 import { Plugin } from '@/core/plugin';
+import { DecorationManager } from '@/core/decoration';
 
 export interface UseCalendarOptions
   extends Omit<CalendarViewOptions, 'plugins'> {
@@ -18,14 +19,16 @@ export interface UseCalendarOptions
 export interface UseCalendarReturn {
   state: CalendarState | null;
   calendar: CalendarView | null;
-  execCommand: (commandName: string, ...args: any[]) => boolean;
-  query: (pluginKey: string, queryName: string, ...args: any[]) => any;
-  addPlugin: (plugin: Plugin) => void;
-  removePlugin: (pluginKey: string) => boolean;
+  execCommand: (commandName: string, ...args: unknown[]) => boolean;
+  query: <T = unknown>(
+    pluginKey: string,
+    queryName: string,
+    ...args: unknown[]
+  ) => T;
   undo: () => boolean;
   redo: () => boolean;
-  render: () => void;
   isReady: boolean;
+  decorations: DecorationManager;
 }
 
 /**
@@ -37,21 +40,34 @@ export function useCalendar(
   const [state, setState] = useState<CalendarState | null>(null);
   const [isReady, setIsReady] = useState(false);
   const calendarRef = useRef<CalendarView | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const decorationManagerRef = useRef<DecorationManager>(
+    new DecorationManager()
+  );
+  const optionsRef = useRef(options);
 
-  // 옵션 메모이제이션
-  const memoizedOptions = useMemo(() => options, [options]);
+  // options ref 업데이트
+  useEffect(() => {
+    optionsRef.current = options;
+  });
+
+  // 옵션을 깊은 메모이제이션으로 처리하여 무한 리렌더링 방지
+  const memoizedOptions = useMemo(() => {
+    return {
+      plugins: options.plugins ?? [],
+      initialState: options.initialState,
+    };
+  }, [
+    options.plugins, // 배열 참조 - 스토리에서 고정된 배열이므로 안전
+    options.initialState,
+  ]);
 
   // 캘린더 초기화
   useEffect(() => {
-    // 컨테이너 엘리먼트 생성
-    if (!containerRef.current) {
-      containerRef.current = document.createElement('div');
-      containerRef.current.className = 'calendar-container';
-    }
+    // 정리 함수에서 사용할 ref 값들을 미리 캡처
+    const decorationManager = decorationManagerRef.current;
 
-    // CalendarView 인스턴스 생성
-    const calendar = new CalendarView(containerRef.current, memoizedOptions);
+    // CalendarView 인스턴스 생성 (헤드리스 버전)
+    const calendar = new CalendarView(memoizedOptions);
     calendarRef.current = calendar;
 
     // 초기 상태 설정
@@ -61,12 +77,19 @@ export function useCalendar(
     // 상태 변경 리스너 등록
     const unsubscribeState = calendar.onStateChange(newState => {
       setState(newState);
-      options.onStateChange?.(newState);
+
+      // 데코레이션 업데이트
+      const decorations = calendar.getDecorations();
+      decorationManagerRef.current.updateDecorations(decorations);
+
+      // ref를 통해 최신 콜백 호출
+      optionsRef.current.onStateChange?.(newState);
     });
 
     // 트랜잭션 리스너 등록
     const unsubscribeTransaction = calendar.onTransaction(transaction => {
-      options.onTransaction?.(transaction);
+      // ref를 통해 최신 콜백 호출
+      optionsRef.current.onTransaction?.(transaction);
     });
 
     // 정리 함수
@@ -75,14 +98,16 @@ export function useCalendar(
       unsubscribeTransaction();
       calendar.destroy();
       calendarRef.current = null;
+      if (decorationManager) {
+        decorationManager.dispose();
+      }
       setIsReady(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedOptions]);
 
   // 커맨드 실행 함수
   const execCommand = useCallback(
-    (commandName: string, ...args: any[]): boolean => {
+    (commandName: string, ...args: unknown[]): boolean => {
       if (!calendarRef.current) return false;
       return calendarRef.current.execCommand(commandName, ...args);
     },
@@ -91,24 +116,16 @@ export function useCalendar(
 
   // 쿼리 함수
   const query = useCallback(
-    (pluginKey: string, queryName: string, ...args: any[]): any => {
-      if (!calendarRef.current) return undefined;
-      return calendarRef.current.query(pluginKey, queryName, ...args);
+    <T = unknown>(
+      pluginKey: string,
+      queryName: string,
+      ...args: unknown[]
+    ): T => {
+      if (!calendarRef.current) return undefined as T;
+      return calendarRef.current.query(pluginKey, queryName, ...args) as T;
     },
     []
   );
-
-  // 플러그인 추가
-  const addPlugin = useCallback((plugin: Plugin): void => {
-    if (!calendarRef.current) return;
-    calendarRef.current.addPlugin(plugin);
-  }, []);
-
-  // 플러그인 제거
-  const removePlugin = useCallback((pluginKey: string): boolean => {
-    if (!calendarRef.current) return false;
-    return calendarRef.current.removePlugin(pluginKey);
-  }, []);
 
   // Undo
   const undo = useCallback((): boolean => {
@@ -122,56 +139,15 @@ export function useCalendar(
     return calendarRef.current.redo();
   }, []);
 
-  // 수동 렌더링
-  const render = useCallback((): void => {
-    if (!calendarRef.current) return;
-    calendarRef.current.render();
-  }, []);
-
   return {
     state,
     calendar: calendarRef.current,
     execCommand,
     query,
-    addPlugin,
-    removePlugin,
     undo,
     redo,
-    render,
     isReady,
-  };
-}
-
-/**
- * useCalendarRef Hook
- * DOM 엘리먼트와 함께 캘린더를 사용하는 훅
- */
-export function useCalendarRef(options: UseCalendarOptions = {}) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  const [calendar, setCalendar] = useState<CalendarView | null>(null);
-  const [state, setState] = useState<CalendarState | null>(null);
-
-  useEffect(() => {
-    if (!elementRef.current) return;
-
-    const calendarInstance = new CalendarView(elementRef.current, options);
-    setCalendar(calendarInstance);
-    setState(calendarInstance.getState());
-
-    const unsubscribe = calendarInstance.onStateChange(setState);
-
-    return () => {
-      unsubscribe();
-      calendarInstance.destroy();
-      setCalendar(null);
-      setState(null);
-    };
-  }, [options]);
-
-  return {
-    elementRef,
-    calendar,
-    state,
+    decorations: decorationManagerRef.current,
   };
 }
 
@@ -230,7 +206,7 @@ export function useCalendarState(
  * useCalendarPlugin Hook
  * 특정 플러그인의 상태와 기능을 사용하는 훅
  */
-export function useCalendarPlugin(
+export function useCalendarPlugin<T = unknown>(
   calendar: CalendarView | null,
   pluginKey: string
 ) {
@@ -240,19 +216,19 @@ export function useCalendarPlugin(
     if (!state || !state.pluginStates.has(pluginKey)) {
       return null;
     }
-    return state.pluginStates.get(pluginKey) as any;
+    return state.pluginStates.get(pluginKey) as PluginState<T> | undefined;
   }, [state, pluginKey]);
 
   const query = useCallback(
-    (queryName: string, ...args: any[]): any => {
-      if (!calendar) return undefined;
-      return calendar.query(pluginKey, queryName, ...args);
+    <R = unknown>(queryName: string, ...args: unknown[]): R => {
+      if (!calendar) return undefined as R;
+      return calendar.query(pluginKey, queryName, ...args) as R;
     },
     [calendar, pluginKey]
   );
 
   return {
-    pluginState: pluginState?.value || null,
+    pluginState: pluginState?.value ?? null,
     query,
   };
 }

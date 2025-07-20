@@ -36,6 +36,7 @@ export interface EventOptions {
   defaultDuration?: number; // 기본 이벤트 지속 시간 (분)
   allowPastEvents?: boolean; // 과거 이벤트 생성 허용
   categories?: string[]; // 허용된 카테고리 목록
+  defaultEventColor?: string; // 기본 이벤트 색상
 }
 
 export interface EventState {
@@ -346,6 +347,7 @@ export function createEventPlugin(
     defaultDuration: 60, // 1시간
     allowPastEvents: true,
     categories: undefined,
+    defaultEventColor: '#3174ad',
   };
 
   const finalOptions = { ...defaultOptions, ...options };

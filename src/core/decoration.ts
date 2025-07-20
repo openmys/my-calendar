@@ -6,6 +6,17 @@
 import { Decoration, DecorationType } from '@/types';
 
 /**
+ * React에서 사용할 데코레이션 데이터 타입
+ */
+export interface DecorationData {
+  className?: string;
+  style?: React.CSSProperties;
+  attributes?: Record<string, string>;
+  overlayContent?: string;
+  widgetData?: any;
+}
+
+/**
  * DecorationSet 클래스
  * 데코레이션 컬렉션을 관리하고 조작하는 클래스
  */
@@ -196,12 +207,14 @@ export class DecorationFactory {
   /**
    * 위젯 데코레이션 생성
    */
-  static widget(date: Date, widgetFactory: () => HTMLElement): Decoration {
+  static widget(date: Date, widgetData: any): Decoration {
     return {
       type: 'widget',
       from: new Date(date),
       spec: {
-        widget: widgetFactory,
+        attributes: {
+          'data-widget': JSON.stringify(widgetData),
+        },
       },
     };
   }
@@ -285,258 +298,17 @@ export class DecorationFactory {
 }
 
 /**
- * Decoration Renderer
- * 데코레이션을 실제 DOM 요소에 적용하는 렌더러
- */
-export class DecorationRenderer {
-  private decorationElements: Map<Decoration, HTMLElement[]> = new Map();
-
-  /**
-   * 데코레이션을 DOM 요소에 적용
-   */
-  render(element: HTMLElement, decoration: Decoration): HTMLElement[] {
-    const elements: HTMLElement[] = [];
-
-    switch (decoration.type) {
-      case 'highlight':
-        elements.push(...this.renderHighlight(element, decoration));
-        break;
-      case 'overlay':
-        elements.push(...this.renderOverlay(element, decoration));
-        break;
-      case 'widget':
-        elements.push(...this.renderWidget(element, decoration));
-        break;
-    }
-
-    this.decorationElements.set(decoration, elements);
-    return elements;
-  }
-
-  /**
-   * 하이라이트 데코레이션 렌더링
-   */
-  private renderHighlight(
-    element: HTMLElement,
-    decoration: Decoration
-  ): HTMLElement[] {
-    const { spec } = decoration;
-
-    if (spec.class) {
-      element.classList.add(spec.class);
-    }
-
-    if (spec.style) {
-      element.style.cssText += spec.style;
-    }
-
-    if (spec.attributes) {
-      for (const [key, value] of Object.entries(spec.attributes)) {
-        element.setAttribute(key, value);
-      }
-    }
-
-    return [element];
-  }
-
-  /**
-   * 오버레이 데코레이션 렌더링
-   */
-  private renderOverlay(
-    element: HTMLElement,
-    decoration: Decoration
-  ): HTMLElement[] {
-    const overlayElement = document.createElement('div');
-    const { spec } = decoration;
-
-    if (spec.class) {
-      overlayElement.className = spec.class;
-    }
-
-    if (spec.style) {
-      overlayElement.style.cssText = spec.style;
-    }
-
-    if (spec.attributes) {
-      for (const [key, value] of Object.entries(spec.attributes)) {
-        overlayElement.setAttribute(key, value);
-
-        // 특별한 속성 처리
-        if (key === 'data-content') {
-          overlayElement.textContent = value;
-        }
-      }
-    }
-
-    element.appendChild(overlayElement);
-    return [overlayElement];
-  }
-
-  /**
-   * 위젯 데코레이션 렌더링
-   */
-  private renderWidget(
-    element: HTMLElement,
-    decoration: Decoration
-  ): HTMLElement[] {
-    const { spec } = decoration;
-
-    if (!spec.widget) {
-      console.warn('Widget decoration missing widget factory');
-      return [];
-    }
-
-    try {
-      const widget = spec.widget();
-
-      if (spec.class) {
-        widget.classList.add(spec.class);
-      }
-
-      if (spec.style) {
-        widget.style.cssText += spec.style;
-      }
-
-      if (spec.attributes) {
-        for (const [key, value] of Object.entries(spec.attributes)) {
-          widget.setAttribute(key, value);
-        }
-      }
-
-      element.appendChild(widget);
-      return [widget];
-    } catch (error) {
-      console.error('Error creating widget:', error);
-      return [];
-    }
-  }
-
-  /**
-   * 데코레이션 제거
-   */
-  remove(decoration: Decoration): void {
-    const elements = this.decorationElements.get(decoration);
-    if (elements) {
-      elements.forEach(element => {
-        element.remove();
-      });
-      this.decorationElements.delete(decoration);
-    }
-  }
-
-  /**
-   * 모든 데코레이션 제거
-   */
-  clear(): void {
-    for (const elements of this.decorationElements.values()) {
-      elements.forEach(element => element.remove());
-    }
-    this.decorationElements.clear();
-  }
-
-  /**
-   * 특정 요소의 데코레이션들 제거
-   */
-  clearElement(element: HTMLElement): void {
-    // 클래스 제거
-    element.className = element.className
-      .split(' ')
-      .filter(cls => !cls.startsWith('calendar-'))
-      .join(' ');
-
-    // 데이터 속성 제거
-    const attributesToRemove: string[] = [];
-    for (let i = 0; i < element.attributes.length; i++) {
-      const attr = element.attributes[i];
-      if (attr.name.startsWith('data-') || attr.name === 'title') {
-        attributesToRemove.push(attr.name);
-      }
-    }
-    attributesToRemove.forEach(attr => element.removeAttribute(attr));
-
-    // 자식 데코레이션 요소들 제거
-    const decorationChildren = element.querySelectorAll(
-      '.calendar-overlay, .calendar-widget'
-    );
-    decorationChildren.forEach(child => child.remove());
-  }
-}
-
-/**
- * Decoration Manager
- * 데코레이션의 생성, 업데이트, 제거를 관리
+ * Decoration Manager (헤드리스 버전)
+ * 데코레이션 데이터만 관리하고 DOM 조작은 하지 않음
  */
 export class DecorationManager {
   private currentDecorations = new DecorationSet();
-  private renderer = new DecorationRenderer();
-  private elementMap = new Map<Date, HTMLElement>();
-
-  /**
-   * 요소와 날짜 매핑 등록
-   */
-  registerElement(date: Date, element: HTMLElement): void {
-    this.elementMap.set(date, element);
-  }
-
-  /**
-   * 요소 매핑 제거
-   */
-  unregisterElement(date: Date): void {
-    this.elementMap.delete(date);
-  }
 
   /**
    * 데코레이션 업데이트
    */
   updateDecorations(newDecorations: DecorationSet): void {
-    // 기존 데코레이션 제거
-    this.clearAllDecorations();
-
-    // 새 데코레이션 적용
     this.currentDecorations = newDecorations;
-    this.applyDecorations();
-  }
-
-  /**
-   * 데코레이션 적용
-   */
-  private applyDecorations(): void {
-    for (const decoration of this.currentDecorations) {
-      this.applyDecoration(decoration);
-    }
-  }
-
-  /**
-   * 단일 데코레이션 적용
-   */
-  private applyDecoration(decoration: Decoration): void {
-    if (decoration.to) {
-      // 범위 데코레이션
-      const current = new Date(decoration.from);
-      while (current <= decoration.to) {
-        const element = this.elementMap.get(current);
-        if (element) {
-          this.renderer.render(element, decoration);
-        }
-        current.setDate(current.getDate() + 1);
-      }
-    } else {
-      // 단일 날짜 데코레이션
-      const element = this.elementMap.get(decoration.from);
-      if (element) {
-        this.renderer.render(element, decoration);
-      }
-    }
-  }
-
-  /**
-   * 모든 데코레이션 제거
-   */
-  private clearAllDecorations(): void {
-    for (const element of this.elementMap.values()) {
-      this.renderer.clearElement(element);
-    }
-    this.renderer.clear();
   }
 
   /**
@@ -547,11 +319,61 @@ export class DecorationManager {
   }
 
   /**
+   * 특정 날짜의 데코레이션 반환
+   */
+  getDecorationsForDate(date: Date): Decoration[] {
+    return this.currentDecorations.find(date);
+  }
+
+  /**
+   * 날짜 범위의 데코레이션 반환
+   */
+  getDecorationsForRange(start: Date, end: Date): Decoration[] {
+    return this.currentDecorations.findInRange(start, end);
+  }
+
+  /**
+   * 날짜별 데코레이션 맵 반환 (React에서 사용하기 편한 형태)
+   */
+  getDecorationMap(): Map<string, Decoration[]> {
+    const map = new Map<string, Decoration[]>();
+
+    for (const decoration of this.currentDecorations) {
+      if (decoration.to) {
+        // 범위 데코레이션
+        const current = new Date(decoration.from);
+        while (current <= decoration.to) {
+          const dateKey = this.getDateKey(current);
+          if (!map.has(dateKey)) {
+            map.set(dateKey, []);
+          }
+          map.get(dateKey)!.push(decoration);
+          current.setDate(current.getDate() + 1);
+        }
+      } else {
+        // 단일 날짜 데코레이션
+        const dateKey = this.getDateKey(decoration.from);
+        if (!map.has(dateKey)) {
+          map.set(dateKey, []);
+        }
+        map.get(dateKey)!.push(decoration);
+      }
+    }
+
+    return map;
+  }
+
+  /**
+   * 날짜를 키로 변환
+   */
+  private getDateKey(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  /**
    * 정리
    */
   dispose(): void {
-    this.clearAllDecorations();
-    this.elementMap.clear();
     this.currentDecorations = new DecorationSet();
   }
 }

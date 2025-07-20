@@ -42,28 +42,33 @@ export interface PluginSpec<T = any> {
       date: Date,
       event: MouseEvent,
       state: CalendarState,
-      plugin: Plugin<T>
+      plugin: Plugin<T>,
+      calendar?: any
     ) => boolean;
     handleTimeClick?: (
       datetime: Date,
       event: MouseEvent,
       state: CalendarState,
-      plugin: Plugin<T>
+      plugin: Plugin<T>,
+      calendar?: any
     ) => boolean;
     handleKeyDown?: (
       event: KeyboardEvent,
       state: CalendarState,
-      plugin: Plugin<T>
+      plugin: Plugin<T>,
+      calendar?: any
     ) => boolean;
     handleDrag?: (
       dragData: DragData,
       state: CalendarState,
-      plugin: Plugin<T>
+      plugin: Plugin<T>,
+      calendar?: any
     ) => boolean;
     handleResize?: (
       resizeData: ResizeData,
       state: CalendarState,
-      plugin: Plugin<T>
+      plugin: Plugin<T>,
+      calendar?: any
     ) => boolean;
   };
 
@@ -151,11 +156,15 @@ export class Plugin<T = any> {
   /**
    * 쿼리 실행
    */
-  query(name: string, state: CalendarState, ...args: any[]): any {
+  query<T = unknown>(
+    name: string,
+    state: CalendarState,
+    ...args: unknown[]
+  ): T {
     if (!this.spec.queries?.[name]) {
-      return undefined;
+      return undefined as T;
     }
-    return this.spec.queries[name](state, this, ...args);
+    return this.spec.queries[name](state, this, ...args) as T;
   }
 
   /**
@@ -202,20 +211,6 @@ export class PluginManager {
     for (const plugin of sortedByDependency) {
       this.register(plugin);
     }
-  }
-
-  /**
-   * 플러그인 제거
-   */
-  unregister(pluginKey: string): boolean {
-    const plugin = this.plugins.get(pluginKey);
-    if (plugin) {
-      plugin.destroy();
-      this.plugins.delete(pluginKey);
-      this.sortPlugins();
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -410,14 +405,16 @@ export class PluginManager {
   /**
    * 쿼리 실행
    */
-  query(
+  query<T = unknown>(
     pluginKey: string,
     queryName: string,
     state: CalendarState,
-    ...args: any[]
-  ): any {
+    ...args: unknown[]
+  ): T {
     const plugin = this.plugins.get(pluginKey);
-    return plugin ? plugin.query(queryName, state, ...args) : undefined;
+    return plugin
+      ? plugin.query<T>(queryName, state, ...args)
+      : (undefined as T);
   }
 
   /**

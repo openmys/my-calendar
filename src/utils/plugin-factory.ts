@@ -56,23 +56,27 @@ export interface PluginFactoryOptions<T = BaseCustomPluginState> {
       date: Date,
       event: MouseEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean;
     onTimeClick?: (
       datetime: Date,
       event: MouseEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean;
     onKeyDown?: (
       event: KeyboardEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean;
     onKeyUp?: (
       event: KeyboardEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean;
   };
 
@@ -361,9 +365,8 @@ export namespace PluginTemplates {
         },
       },
       eventHandlers: {
-        onDateClick: (date, _event, _state, _pluginState) => {
+        onDateClick: (date, _event, _state, _pluginState, calendar) => {
           // 클릭 카운트 증가 트랜잭션 디스패치
-          const calendar = (window as any).__calendarInstance; // 임시 해결책
           calendar?.execCommand('incrementDateClick', date);
           return false; // 다른 핸들러도 실행되도록
         },

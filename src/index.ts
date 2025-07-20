@@ -25,7 +25,6 @@ export { coreCommands } from './core/command';
 export {
   DecorationSet,
   DecorationFactory,
-  DecorationRenderer,
   DecorationManager,
 } from './core/decoration';
 

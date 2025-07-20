@@ -90,7 +90,8 @@ export class PluginBuilder<T = any> {
       date: Date,
       event: MouseEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean
   ): PluginBuilder<T> {
     this.options.eventHandlers!.onDateClick = handler;
@@ -105,7 +106,8 @@ export class PluginBuilder<T = any> {
       datetime: Date,
       event: MouseEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean
   ): PluginBuilder<T> {
     this.options.eventHandlers!.onTimeClick = handler;
@@ -119,7 +121,8 @@ export class PluginBuilder<T = any> {
     handler: (
       event: KeyboardEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean
   ): PluginBuilder<T> {
     this.options.eventHandlers!.onKeyDown = handler;
@@ -133,7 +136,8 @@ export class PluginBuilder<T = any> {
     handler: (
       event: KeyboardEvent,
       state: CalendarState,
-      pluginState: T
+      pluginState: T,
+      calendar?: any
     ) => boolean
   ): PluginBuilder<T> {
     this.options.eventHandlers!.onKeyUp = handler;
@@ -322,18 +326,16 @@ export namespace PluginPresets {
           },
         ],
       }))
-      .onDateClick((date, _event, _state, _pluginState) => {
+      .onDateClick((date, _event, _state, _pluginState, calendar) => {
         // 클릭 이벤트 로깅
-        const calendar = window.__calendarInstance;
         calendar?.execCommand('logEvent', 'date_click', {
           date,
           timestamp: Date.now(),
         });
         return false; // 이벤트 전파 계속
       })
-      .onKeyDown((event, _state, _pluginState) => {
+      .onKeyDown((event, _state, _pluginState, calendar) => {
         // 키 이벤트 로깅
-        const calendar = window.__calendarInstance;
         calendar?.execCommand('logEvent', 'key_down', {
           key: event.key,
           timestamp: Date.now(),
