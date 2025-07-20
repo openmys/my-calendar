@@ -3,7 +3,7 @@
  * 사용자 액션을 구조화된 명령으로 변환하고 실행하는 시스템
  */
 
-import { Command, CommandMap, CalendarState, Transaction } from '@/types';
+import { CalendarState, Command, CommandMap, Transaction } from '@/types';
 import { transactions } from './transaction';
 
 /**
@@ -282,6 +282,13 @@ export class CommandManager {
             return actualCommand(state, dispatch);
           }
         }
+        
+        // 인자가 없는 팩토리 함수 처리
+        const actualCommand = (command as any)();
+        if (typeof actualCommand === 'function') {
+          return actualCommand(state, dispatch);
+        }
+        
         // 직접 커맨드인 경우
         return (command as Command)(state, dispatch);
       }
