@@ -200,7 +200,7 @@ export class CommandManager {
     pluginKey?: string
   ): void {
     this.commands.set(name, command);
-    
+
     // 플러그인 커맨드 추적
     if (pluginKey) {
       if (!this.pluginCommands.has(pluginKey)) {
@@ -233,7 +233,7 @@ export class CommandManager {
         break;
       }
     }
-    
+
     return this.commands.delete(name);
   }
 

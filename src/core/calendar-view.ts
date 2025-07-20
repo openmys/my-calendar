@@ -33,7 +33,6 @@ export class CalendarView {
     [];
 
   constructor(options: CalendarViewOptions = {}) {
-
     // 매니저들 초기화
     this.pluginManager = new PluginManager();
     this.commandManager = new CommandManager();
@@ -128,8 +127,17 @@ export class CalendarView {
   /**
    * 플러그인 쿼리
    */
-  query<T = unknown>(pluginKey: string, queryName: string, ...args: unknown[]): T {
-    return this.pluginManager.query<T>(pluginKey, queryName, this.state, ...args);
+  query<T = unknown>(
+    pluginKey: string,
+    queryName: string,
+    ...args: unknown[]
+  ): T {
+    return this.pluginManager.query<T>(
+      pluginKey,
+      queryName,
+      this.state,
+      ...args
+    );
   }
 
   /**
@@ -326,7 +334,6 @@ export class CalendarView {
     };
   }
 
-
   /**
    * 날짜 클릭 처리 (헤드리스 방식)
    */
@@ -394,5 +401,4 @@ export class CalendarView {
         return false;
     }
   }
-
 }

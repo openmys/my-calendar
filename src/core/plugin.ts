@@ -156,7 +156,11 @@ export class Plugin<T = any> {
   /**
    * 쿼리 실행
    */
-  query<T = unknown>(name: string, state: CalendarState, ...args: unknown[]): T {
+  query<T = unknown>(
+    name: string,
+    state: CalendarState,
+    ...args: unknown[]
+  ): T {
     if (!this.spec.queries?.[name]) {
       return undefined as T;
     }
@@ -208,7 +212,6 @@ export class PluginManager {
       this.register(plugin);
     }
   }
-
 
   /**
    * 플러그인 가져오기
@@ -409,7 +412,9 @@ export class PluginManager {
     ...args: unknown[]
   ): T {
     const plugin = this.plugins.get(pluginKey);
-    return plugin ? plugin.query<T>(queryName, state, ...args) : (undefined as T);
+    return plugin
+      ? plugin.query<T>(queryName, state, ...args)
+      : (undefined as T);
   }
 
   /**

@@ -72,9 +72,7 @@ export function createCalendar(
 /**
  * 미니멀 캘린더 생성 (플러그인 없음)
  */
-export function createMinimalCalendar(
-  initialDate?: Date
-): CalendarView {
+export function createMinimalCalendar(initialDate?: Date): CalendarView {
   return createCalendar({
     initialDate,
     enableRange: false,

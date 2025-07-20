@@ -237,7 +237,6 @@ export class StateUpdater {
     return ImmutableStateManager.deepFreeze(newState);
   }
 
-
   /**
    * 시간대 변경
    */

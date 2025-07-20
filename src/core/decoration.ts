@@ -297,7 +297,6 @@ export class DecorationFactory {
   }
 }
 
-
 /**
  * Decoration Manager (헤드리스 버전)
  * 데코레이션 데이터만 관리하고 DOM 조작은 하지 않음
@@ -338,7 +337,7 @@ export class DecorationManager {
    */
   getDecorationMap(): Map<string, Decoration[]> {
     const map = new Map<string, Decoration[]>();
-    
+
     for (const decoration of this.currentDecorations) {
       if (decoration.to) {
         // 범위 데코레이션
@@ -360,7 +359,7 @@ export class DecorationManager {
         map.get(dateKey)!.push(decoration);
       }
     }
-    
+
     return map;
   }
 

@@ -20,7 +20,11 @@ export interface UseCalendarReturn {
   state: CalendarState | null;
   calendar: CalendarView | null;
   execCommand: (commandName: string, ...args: unknown[]) => boolean;
-  query: <T = unknown>(pluginKey: string, queryName: string, ...args: unknown[]) => T;
+  query: <T = unknown>(
+    pluginKey: string,
+    queryName: string,
+    ...args: unknown[]
+  ) => T;
   undo: () => boolean;
   redo: () => boolean;
   isReady: boolean;
@@ -36,7 +40,9 @@ export function useCalendar(
   const [state, setState] = useState<CalendarState | null>(null);
   const [isReady, setIsReady] = useState(false);
   const calendarRef = useRef<CalendarView | null>(null);
-  const decorationManagerRef = useRef<DecorationManager>(new DecorationManager());
+  const decorationManagerRef = useRef<DecorationManager>(
+    new DecorationManager()
+  );
 
   // 옵션 메모이제이션
   const memoizedOptions = useMemo(() => options, [options]);
@@ -45,7 +51,7 @@ export function useCalendar(
   useEffect(() => {
     // 정리 함수에서 사용할 ref 값들을 미리 캡처
     const decorationManager = decorationManagerRef.current;
-    
+
     // CalendarView 인스턴스 생성 (헤드리스 버전)
     const calendar = new CalendarView(memoizedOptions);
     calendarRef.current = calendar;
@@ -57,11 +63,11 @@ export function useCalendar(
     // 상태 변경 리스너 등록
     const unsubscribeState = calendar.onStateChange(newState => {
       setState(newState);
-      
+
       // 데코레이션 업데이트
       const decorations = calendar.getDecorations();
       decorationManagerRef.current.updateDecorations(decorations);
-      
+
       options.onStateChange?.(newState);
     });
 
@@ -95,13 +101,16 @@ export function useCalendar(
 
   // 쿼리 함수
   const query = useCallback(
-    <T = unknown>(pluginKey: string, queryName: string, ...args: unknown[]): T => {
+    <T = unknown>(
+      pluginKey: string,
+      queryName: string,
+      ...args: unknown[]
+    ): T => {
       if (!calendarRef.current) return undefined as T;
       return calendarRef.current.query(pluginKey, queryName, ...args) as T;
     },
     []
   );
-
 
   // Undo
   const undo = useCallback((): boolean => {
@@ -115,7 +124,6 @@ export function useCalendar(
     return calendarRef.current.redo();
   }, []);
 
-
   return {
     state,
     calendar: calendarRef.current,
@@ -127,7 +135,6 @@ export function useCalendar(
     decorations: decorationManagerRef.current,
   };
 }
-
 
 /**
  * useCalendarCommands Hook

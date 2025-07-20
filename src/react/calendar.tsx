@@ -23,10 +23,13 @@ export interface CalendarProps extends UseCalendarOptions {
   onMonthChange?: (date: Date) => void;
   onViewChange?: (viewType: string) => void;
   onReady?: (calendar: CalendarView) => void;
-  
+
   // 헤드리스 패턴을 위한 렌더링 커스터마이징 옵션
   renderDay?: (day: CalendarDay, decorations: Decoration[]) => React.ReactNode;
-  renderHeader?: (state: CalendarState, controls: CalendarControls) => React.ReactNode;
+  renderHeader?: (
+    state: CalendarState,
+    controls: CalendarControls
+  ) => React.ReactNode;
   renderWeekdays?: (weekdays: string[]) => React.ReactNode;
   showHeader?: boolean;
   showWeekdays?: boolean;
@@ -86,28 +89,29 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
   const previousStateRef = useRef<CalendarState | null>(null);
 
   // useCalendar 훅 사용
-  const { state, calendar, execCommand, query, isReady, decorations } = useCalendar({
-    ...calendarOptions,
-    onStateChange: newState => {
-      // 월 변경 감지
-      const prevState = previousStateRef.current;
-      if (
-        prevState &&
-        prevState.currentDate.getMonth() !== newState.currentDate.getMonth()
-      ) {
-        onMonthChange?.(newState.currentDate);
-      }
+  const { state, calendar, execCommand, query, isReady, decorations } =
+    useCalendar({
+      ...calendarOptions,
+      onStateChange: newState => {
+        // 월 변경 감지
+        const prevState = previousStateRef.current;
+        if (
+          prevState &&
+          prevState.currentDate.getMonth() !== newState.currentDate.getMonth()
+        ) {
+          onMonthChange?.(newState.currentDate);
+        }
 
-      // 뷰 변경 감지
-      if (prevState && prevState.viewType !== newState.viewType) {
-        onViewChange?.(newState.viewType);
-      }
+        // 뷰 변경 감지
+        if (prevState && prevState.viewType !== newState.viewType) {
+          onViewChange?.(newState.viewType);
+        }
 
-      previousStateRef.current = newState;
-      onStateChange?.(newState);
-    },
-    onTransaction,
-  });
+        previousStateRef.current = newState;
+        onStateChange?.(newState);
+      },
+      onTransaction,
+    });
 
   // Ready 콜백 호출
   useEffect(() => {
@@ -150,7 +154,8 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
       execCommand,
       query,
       getDecorations: () => decorations.getDecorationMap(),
-      getDecorationsForDate: (date: Date) => decorations.getDecorationsForDate(date),
+      getDecorationsForDate: (date: Date) =>
+        decorations.getDecorationsForDate(date),
     }),
     [calendar, state, execCommand, query, decorations]
   );
@@ -158,7 +163,7 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
   // 캘린더 데이터 생성
   const calendarDays = React.useMemo(() => {
     if (!state) return [];
-    
+
     return state.days.map(day => ({
       ...day,
       isOtherMonth: day.date.getMonth() !== state.currentDate.getMonth(),
@@ -168,7 +173,15 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
   // 요일 이름 생성
   const weekdays = React.useMemo(() => {
     const baseWeekdays = {
-      long: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+      long: [
+        '일요일',
+        '월요일',
+        '화요일',
+        '수요일',
+        '목요일',
+        '금요일',
+        '토요일',
+      ],
       short: ['일', '월', '화', '수', '목', '금', '토'],
       narrow: ['일', '월', '화', '수', '목', '금', '토'],
     };
@@ -176,7 +189,7 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
   }, [weekdayFormat]);
 
   if (!state) {
-    return <div className="calendar-loading">로딩 중...</div>;
+    return <div className='calendar-loading'>로딩 중...</div>;
   }
 
   const combinedClassName = ['my-calendar', className]
@@ -191,34 +204,38 @@ export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
       data-testid='calendar'
     >
       {/* 헤더 렌더링 */}
-      {showHeader && (
-        renderHeader ? renderHeader(state, controls) : (
+      {showHeader &&
+        (renderHeader ? (
+          renderHeader(state, controls)
+        ) : (
           <DefaultCalendarHeader state={state} controls={controls} />
-        )
-      )}
+        ))}
 
       {/* 캘린더 본체 */}
-      <div className="calendar-body">
+      <div className='calendar-body'>
         {/* 요일 헤더 */}
-        {showWeekdays && (
-          renderWeekdays ? renderWeekdays(weekdays) : (
+        {showWeekdays &&
+          (renderWeekdays ? (
+            renderWeekdays(weekdays)
+          ) : (
             <DefaultWeekdaysHeader weekdays={weekdays} />
-          )
-        )}
+          ))}
 
         {/* 날짜 그리드 */}
-        <div className="calendar-grid">
+        <div className='calendar-grid'>
           {calendarDays.map(day => {
             const dayDecorations = decorations.getDecorationsForDate(day.date);
-            
-            return renderDay ? renderDay(day, dayDecorations) : (
+
+            return renderDay ? (
+              renderDay(day, dayDecorations)
+            ) : (
               <DefaultCalendarDay
                 key={day.date.toISOString()}
                 day={day}
                 decorations={dayDecorations}
-                onClick={(e) => handleDateClick(day, e)}
-                onDoubleClick={(e) => handleDateDoubleClick(day, e)}
-                onMouseEnter={(e) => handleDateHover(day, e)}
+                onClick={e => handleDateClick(day, e)}
+                onDoubleClick={e => handleDateDoubleClick(day, e)}
+                onMouseEnter={e => handleDateHover(day, e)}
               />
             );
           })}
@@ -249,7 +266,7 @@ export const CalendarUtils = {
    */
   getStyleFromDecorations: (decorations: Decoration[]): React.CSSProperties => {
     const style: React.CSSProperties = {};
-    
+
     decorations.forEach(decoration => {
       if (decoration.spec.style) {
         const styleObj = decoration.spec.style
@@ -257,7 +274,9 @@ export const CalendarUtils = {
           .reduce((acc, rule) => {
             const [property, value] = rule.split(':').map(s => s.trim());
             if (property && value) {
-              const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+              const camelProperty = property.replace(/-([a-z])/g, (_, letter) =>
+                letter.toUpperCase()
+              );
               acc[camelProperty] = value;
             }
             return acc;
@@ -265,22 +284,24 @@ export const CalendarUtils = {
         Object.assign(style, styleObj);
       }
     });
-    
+
     return style;
   },
 
   /**
    * 데코레이션에서 HTML 속성 추출
    */
-  getAttributesFromDecorations: (decorations: Decoration[]): Record<string, string> => {
+  getAttributesFromDecorations: (
+    decorations: Decoration[]
+  ): Record<string, string> => {
     const attributes: Record<string, string> = {};
-    
+
     decorations.forEach(decoration => {
       if (decoration.spec.attributes) {
         Object.assign(attributes, decoration.spec.attributes);
       }
     });
-    
+
     return attributes;
   },
 
@@ -420,7 +441,9 @@ const DefaultCalendarDay: React.FC<DefaultCalendarDayProps> = ({
           .reduce((acc, rule) => {
             const [property, value] = rule.split(':').map(s => s.trim());
             if (property && value) {
-              const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+              const camelProperty = property.replace(/-([a-z])/g, (_, letter) =>
+                letter.toUpperCase()
+              );
               acc[camelProperty] = value;
             }
             return acc;
@@ -430,7 +453,10 @@ const DefaultCalendarDay: React.FC<DefaultCalendarDayProps> = ({
       if (decoration.spec.attributes) {
         Object.assign(data.attributes ?? {}, decoration.spec.attributes);
       }
-      if (decoration.type === 'overlay' && decoration.spec.attributes?.['data-content']) {
+      if (
+        decoration.type === 'overlay' &&
+        decoration.spec.attributes?.['data-content']
+      ) {
         data.overlayContent = decoration.spec.attributes['data-content'];
       }
     });
@@ -483,8 +509,10 @@ export interface CalendarHeaderProps {
   className?: string;
 }
 
-export const CalendarHeader: React.FC<CalendarHeaderProps> = (_props) => {
-  console.warn('CalendarHeader is deprecated. Use renderHeader prop in Calendar component for customization.');
+export const CalendarHeader: React.FC<CalendarHeaderProps> = _props => {
+  console.warn(
+    'CalendarHeader is deprecated. Use renderHeader prop in Calendar component for customization.'
+  );
   return null;
 };
 
@@ -496,7 +524,9 @@ export interface CalendarGridProps {
   weekdayFormat?: 'short' | 'narrow';
 }
 
-export const CalendarGrid: React.FC<CalendarGridProps> = (_props) => {
-  console.warn('CalendarGrid is deprecated. Use renderDay prop in Calendar component for customization.');
+export const CalendarGrid: React.FC<CalendarGridProps> = _props => {
+  console.warn(
+    'CalendarGrid is deprecated. Use renderDay prop in Calendar component for customization.'
+  );
   return null;
 };
