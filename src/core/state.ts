@@ -4,13 +4,13 @@
  */
 
 import {
-  CalendarState,
   CalendarDay,
+  CalendarState,
   PluginState,
-  ViewType,
   TimeRange,
+  ViewType,
 } from '@/types';
-import { StateValidator, ImmutableStateManager } from './plugin-state';
+import { ImmutableStateManager, StateValidator } from './plugin-state';
 
 /**
  * CalendarState 팩토리
@@ -183,6 +183,8 @@ export class StateUpdater {
       newDate,
       state.viewType
     );
+
+    const corePluginState = state.pluginStates.get('core') as CorePluginState;
 
     const newState: CalendarState = {
       ...state,

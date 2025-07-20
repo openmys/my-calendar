@@ -1,3 +1,4 @@
+import { Transaction } from './../../dist/types/index.d';
 /**
  * 핵심 타입 정의
  * ProseMirror 스타일 헤드리스 캘린더 라이브러리의 기본 타입들
@@ -64,7 +65,7 @@ export interface ViewportState {
 
 // 전역 캘린더 상태
 export interface CalendarState {
-  currentDate: Date;
+  // currentDate: Date;
   viewType: ViewType;
   timeRange: TimeRange;
   days: CalendarDay[];
@@ -77,11 +78,17 @@ export interface CalendarState {
 
 // 트랜잭션 타입
 // 기본 Transaction 인터페이스
-export interface Transaction<T = any> {
-  type: string;
-  payload: T;
-  meta: Map<string, unknown>;
-}
+// export interface Transaction<T = any> {
+//   type: string;
+//   payload: T;
+//   meta: Map<string, unknown>;
+// }
+
+export type Transaction<T, P, M = Map<string, unknown>> = {
+  type: T;
+  payload: P;
+  meta: M;
+};
 
 // 구체적인 트랜잭션 타입들
 export interface DateTransaction extends Transaction<{ date: Date }> {
