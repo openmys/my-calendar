@@ -20,24 +20,30 @@ export default {
 ## 🎯 핵심 특징
 
 ### 헤드리스 디자인
+
 - **완전한 UI/로직 분리**: 코어는 DOM을 전혀 알지 못함
-- **프레임워크 독립성**: React, Vue, Svelte 등 어디서든 사용 가능  
+- **프레임워크 독립성**: React, Vue, Svelte 등 어디서든 사용 가능
 - **무한 커스터마이징**: 개발자가 모든 UI를 직접 제어
 - **작은 번들 사이즈**: UI 코드가 코어에 포함되지 않음
 
 ### ProseMirror 스타일 아키텍처
+
 - **State System**: 불변 상태 관리와 Transaction 기반 업데이트
 - **Command System**: 사용자 액션을 구조화된 명령으로 변환
 - **Plugin System**: 모듈화된 기능 확장을 위한 플러그인 아키텍처
 - **Decoration System**: 선언적 UI 렌더링 시스템
 
 ### 선언적 플러그인 시스템
+
 ```typescript
 // TanStack Table과 동일한 선언적 패턴
-const plugins = useMemo(() => [
-  createRangePlugin({ maxRange: 7 }),
-  createEventPlugin({ allowOverlap: false })
-], []); // 컴포넌트 마운트 시에만 설정
+const plugins = useMemo(
+  () => [
+    createRangePlugin({ maxRange: 7 }),
+    createEventPlugin({ allowOverlap: false }),
+  ],
+  []
+); // 컴포넌트 마운트 시에만 설정
 
 const { state, execCommand, decorations } = useCalendar({ plugins });
 ```
@@ -45,11 +51,13 @@ const { state, execCommand, decorations } = useCalendar({ plugins });
 ## 🚀 사용 패턴
 
 ### 기본 사용 (간편함)
+
 ```typescript
 <Calendar plugins={[createRangePlugin()]} />
 ```
 
 ### 헤드리스 사용 (무한 확장)
+
 ```typescript
 const { state, decorations } = useCalendar({ plugins });
 
@@ -57,8 +65,8 @@ const { state, decorations } = useCalendar({ plugins });
   {state.days.map(day => {
     const dayDecorations = decorations.getDecorationsForDate(day.date);
     return (
-      <CustomDayComponent 
-        day={day} 
+      <CustomDayComponent
+        day={day}
         decorations={dayDecorations}
         style={myCustomStyle}
       />
@@ -78,11 +86,11 @@ const { state, decorations } = useCalendar({ plugins });
 
 ## 🔧 TanStack Table과의 비교
 
-| 측면 | TanStack Table | 우리 캘린더 |
-|------|----------------|-------------|
-| 아키텍처 | 헤드리스 테이블 | 헤드리스 캘린더 |
-| 데이터 플로우 | 선언적 컬럼 정의 | 선언적 플러그인 구성 |
-| 커스터마이징 | 완전한 렌더 제어 | 완전한 캘린더 UI 제어 |
-| 확장성 | 컬럼 기반 | 플러그인 기반 |
+| 측면          | TanStack Table   | 우리 캘린더           |
+| ------------- | ---------------- | --------------------- |
+| 아키텍처      | 헤드리스 테이블  | 헤드리스 캘린더       |
+| 데이터 플로우 | 선언적 컬럼 정의 | 선언적 플러그인 구성  |
+| 커스터마이징  | 완전한 렌더 제어 | 완전한 캘린더 UI 제어 |
+| 확장성        | 컬럼 기반        | 플러그인 기반         |
 
 **헤드리스 패턴의 진정한 가치를 캘린더 도메인에서 구현했습니다!**

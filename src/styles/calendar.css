@@ -5,9 +5,9 @@
 
 /* 캘린더 컨테이너 */
 .my-calendar {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   line-height: 1.5;
   color: #333;
   max-width: 320px;
@@ -331,12 +331,12 @@
   .my-calendar {
     max-width: 400px;
   }
-  
+
   .calendar-day {
     min-height: 3rem;
     font-size: 1rem;
   }
-  
+
   .calendar-title {
     font-size: 1.25rem;
   }
@@ -346,15 +346,15 @@
   .my-calendar {
     max-width: 480px;
   }
-  
+
   .calendar-header {
     padding: 1.5rem;
   }
-  
+
   .calendar-body {
     padding: 1rem;
   }
-  
+
   .calendar-day {
     min-height: 3.5rem;
   }
@@ -367,62 +367,62 @@
     border-color: #4a5568;
     color: #f7fafc;
   }
-  
+
   .calendar-header {
     background: #1a202c;
     border-color: #4a5568;
   }
-  
+
   .calendar-title {
     color: #f7fafc;
   }
-  
+
   .calendar-nav-button {
     color: #cbd5e0;
   }
-  
+
   .calendar-nav-button:hover {
     background: #4a5568;
     color: #f7fafc;
     border-color: #718096;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
-  
+
   .calendar-today-button {
     background: #2d3748;
     border-color: #4a5568;
     color: #cbd5e0;
   }
-  
+
   .calendar-today-button:hover {
     background: #4a5568;
     border-color: #718096;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
-  
+
   .calendar-weekday {
     color: #a0aec0;
   }
-  
+
   .calendar-day {
     background: #2d3748;
     color: #f7fafc;
   }
-  
+
   .calendar-day:hover {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   .calendar-day.other-month {
     color: #718096;
     background: #1a202c;
   }
-  
+
   .calendar-day.other-month:hover {
     background: #2d3748;
   }
-  
+
   .calendar-day.disabled {
     color: #4a5568;
     background: #1a202c;
@@ -431,7 +431,8 @@
 
 /* 애니메이션 */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -461,11 +462,11 @@
   .my-calendar {
     border-width: 2px;
   }
-  
+
   .calendar-day {
     border-width: 1px;
   }
-  
+
   .calendar-day:hover,
   .calendar-day:focus {
     border-width: 2px;
@@ -479,12 +480,12 @@
   .calendar-today-button {
     transition: none;
   }
-  
+
   .calendar-day:hover,
   .calendar-day:active {
     transform: none;
   }
-  
+
   .calendar-day.loading {
     animation: none;
   }

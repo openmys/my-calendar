@@ -18,7 +18,7 @@ ProseMirror 스타일 헤드리스 캘린더 라이브러리의 전체 API 문�
 헤드리스 캘린더 인스턴스를 생성합니다.
 
 ```typescript
-function createCalendar(options: CalendarOptions): CalendarView
+function createCalendar(options: CalendarOptions): CalendarView;
 
 interface CalendarOptions {
   plugins?: Plugin[];
@@ -45,7 +45,7 @@ const calendar = createCalendar({
 React 환경에서 헤드리스 캘린더를 사용하기 위한 훅입니다.
 
 ```typescript
-function useCalendar(options: UseCalendarOptions): UseCalendarReturn
+function useCalendar(options: UseCalendarOptions): UseCalendarReturn;
 
 interface UseCalendarOptions {
   plugins: Plugin[];
@@ -73,7 +73,7 @@ function MyCalendar() {
   return (
     <div>
       {state.days.map(day => (
-        <div 
+        <div
           key={day.date.getTime()}
           onClick={() => execCommand('selectDate', day.date)}
         >
@@ -94,7 +94,7 @@ function MyCalendar() {
 날짜 범위 선택 기능을 제공하는 플러그인입니다.
 
 ```typescript
-function createRangePlugin(options?: RangeOptions): Plugin<RangeState>
+function createRangePlugin(options?: RangeOptions): Plugin<RangeState>;
 
 interface RangeOptions {
   selectionMode?: 'single' | 'range' | 'multiple';
@@ -119,7 +119,7 @@ interface RangeState {
 이벤트 관리 기능을 제공하는 플러그인입니다.
 
 ```typescript
-function createEventPlugin(options?: EventOptions): Plugin<EventState>
+function createEventPlugin(options?: EventOptions): Plugin<EventState>;
 
 interface EventOptions {
   allowOverlap?: boolean;
@@ -199,7 +199,7 @@ UI 렌더링을 위한 데코레이션 시스템입니다.
 ```typescript
 class DecorationSet {
   decorations: Decoration[];
-  
+
   add(decoration: Decoration): DecorationSet;
   remove(predicate: (decoration: Decoration) => boolean): DecorationSet;
   find(predicate: (decoration: Decoration) => boolean): Decoration[];
@@ -289,11 +289,11 @@ function AdvancedCalendar() {
           Next
         </button>
       </header>
-      
+
       <div className="calendar-grid">
         {state.days.map(day => {
           const dayDecorations = decorations.getDecorationsForDate(day.date);
-          
+
           return (
             <div
               key={day.date.getTime()}
@@ -316,7 +316,7 @@ function AdvancedCalendar() {
 ## 🔍 더 많은 정보
 
 - **라이브 예시**: 실제 동작하는 캘린더 컴포넌트들
-- **플러그인 데모**: 각 플러그인의 상세한 사용법  
+- **플러그인 데모**: 각 플러그인의 상세한 사용법
 - **헤드리스 예시**: 다양한 커스텀 UI 구현 방법
 - **GitHub 저장소**: 소스 코드 및 이슈 트래킹
 
