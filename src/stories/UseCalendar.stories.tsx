@@ -15,7 +15,7 @@ const CalendarExample = ({
   customStyle?: boolean;
 }) => {
   const memoizedPlugins = useMemo(() => plugins, [plugins]);
-  const { state, calendar, execCommand, rangeQuery } = useCalendar({
+  const { state, calendar, execCommand, query } = useCalendar({
     plugins: memoizedPlugins,
   });
 
@@ -26,27 +26,28 @@ const CalendarExample = ({
   // 🔥 새로운 타입 안전한 query 함수 사용!
   const hasRangePlugin = plugins?.some(p => p.key === 'range') || false;
 
-  // 방법 1: 새로운 타입 안전한 query 함수 (복잡한 타입으로 인해 아직 제한적)
-  // const selectedRange = hasRangePlugin ? query('range', 'getSelectedRange') : null;
-
-  // 방법 2: 검증된 rangeQuery 헬퍼 사용 (완전 타입 안전!)
-  const selectedRange = hasRangePlugin ? rangeQuery.getSelectedRange() : null;
-  const selectedDates = hasRangePlugin ? rangeQuery.getSelectedDates() : [];
+  // 범용 쿼리 시스템 사용 (완전 타입 안전!)
+  const selectedRange = hasRangePlugin
+    ? query('range', 'getSelectedRange')
+    : null;
+  const selectedDates = hasRangePlugin
+    ? query('range', 'getSelectedDates')
+    : [];
   const selectionMode = hasRangePlugin
-    ? rangeQuery.getSelectionMode()
+    ? query('range', 'getSelectionMode')
     : 'single';
-  const isSelecting = hasRangePlugin ? rangeQuery.isSelecting() : false;
+  const isSelecting = hasRangePlugin ? query('range', 'isSelecting') : false;
 
-  // 🎯 타입 추론 시연: rangeQuery 헬퍼 사용
+  // 🎯 타입 추론 시연: 범용 쿼리 시스템 사용
   const typeInferenceDemo = hasRangePlugin
     ? {
-        // ✅ 완전 자동 타입 추론 - rangeQuery 헬퍼로 타입 안전성 보장!
-        selectedRange: rangeQuery.getSelectedRange(), // { start: Date; end: Date } | null
-        selectedDates: rangeQuery.getSelectedDates(), // Date[]
-        selectionMode: rangeQuery.getSelectionMode(), // 'single' | 'range' | 'multiple'
-        isSelecting: rangeQuery.isSelecting(), // boolean
+        // ✅ 완전 자동 타입 추론 - 범용 쿼리 시스템으로 타입 안전성 보장!
+        selectedRange: query('range', 'getSelectedRange'), // { start: Date; end: Date } | null
+        selectedDates: query('range', 'getSelectedDates'), // Date[]
+        selectionMode: query('range', 'getSelectionMode'), // 'single' | 'range' | 'multiple'
+        isSelecting: query('range', 'isSelecting'), // boolean
 
-        // rangeQuery 헬퍼는 컴파일 타임에 완전히 타입 안전합니다!
+        // 범용 쿼리 시스템은 컴파일 타임에 완전히 타입 안전합니다!
       }
     : null;
 

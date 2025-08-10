@@ -26,16 +26,16 @@ const RangePluginDemo = ({
     return [plugin] as const; // as const로 타입 보존
   }, [selectionMode, maxRange, allowPastDates, allowFutureDates]);
 
-  // useCalendar 훅 사용 - rangeQuery 헬퍼로 완전 타입 안전!
-  const { state, calendar, rangeQuery, execCommand } = useCalendar({
+  // useCalendar 훅 사용 - 범용 쿼리 시스템으로 완전 타입 안전!
+  const { state, calendar, query, execCommand } = useCalendar({
     plugins,
   });
 
-  // 🔥 rangeQuery 헬퍼 - 완전 타입 안전한 쿼리!
-  const selectedRange = rangeQuery.getSelectedRange(); // { start: Date; end: Date } | null
-  const selectedDates = rangeQuery.getSelectedDates(); // Date[]
-  const currentSelectionMode = rangeQuery.getSelectionMode(); // 'single' | 'range' | 'multiple'
-  const isSelecting = rangeQuery.isSelecting(); // boolean
+  // 🔥 범용 쿼리 시스템 - 완전 타입 안전한 쿼리!
+  const selectedRange = query('range', 'getSelectedRange'); // { start: Date; end: Date } | null
+  const selectedDates = query('range', 'getSelectedDates'); // Date[]
+  const currentSelectionMode = query('range', 'getSelectionMode'); // 'single' | 'range' | 'multiple'
+  const isSelecting = query('range', 'isSelecting'); // boolean
 
   // 날짜 클릭 핸들러
   const handleDateClick = (date: Date) => {
@@ -48,18 +48,19 @@ const RangePluginDemo = ({
 
   // 🎯 타입 안전성 시연
   const demonstrateTypeSafety = () => {
-    // ✅ rangeQuery 헬퍼 - 모든 타입이 완벽하게 추론됨
-    const range = rangeQuery.getSelectedRange(); // { start: Date; end: Date } | null
-    const dates = rangeQuery.getSelectedDates(); // Date[]
-    const mode = rangeQuery.getSelectionMode(); // 'single' | 'range' | 'multiple'
-    const selecting = rangeQuery.isSelecting(); // boolean
+    // ✅ 범용 쿼리 시스템 - 모든 타입이 완벽하게 추론됨
+    const range = query('range', 'getSelectedRange'); // { start: Date; end: Date } | null
+    const dates = query('range', 'getSelectedDates'); // Date[]
+    const mode = query('range', 'getSelectionMode'); // 'single' | 'range' | 'multiple'
+    const selecting = query('range', 'isSelecting'); // boolean
 
-    // ✅ rangeQuery 헬퍼는 컴파일 타임에 완전히 타입 안전합니다!
-    // 잘못된 메서드 호출은 즉시 타입 에러 발생:
-    // rangeQuery.wrongMethod(); // Property 'wrongMethod' does not exist
+    // ✅ 범용 쿼리 시스템은 컴파일 타임에 완전히 타입 안전합니다!
+    // 잘못된 플러그인 키나 쿼리명은 즉시 타입 에러 발생:
+    // query('wrongPlugin', 'getSelectedRange'); // Argument of type '"wrongPlugin"' is not assignable
+    // query('range', 'wrongQuery'); // Argument of type '"wrongQuery"' is not assignable
 
     // eslint-disable-next-line no-console
-    console.log('rangeQuery 타입 추론 결과:', {
+    console.log('범용 쿼리 시스템 타입 추론 결과:', {
       range,
       dates,
       mode,
@@ -80,12 +81,12 @@ const RangePluginDemo = ({
         }}
       >
         <h3 style={{ color: '#2e7d32', margin: '0 0 10px 0' }}>
-          ✨ Range Plugin 타입 추론 시연
+          ✨ 범용 쿼리 시스템 타입 추론 시연
         </h3>
         <div style={{ fontSize: '14px', color: '#333', marginBottom: '10px' }}>
           <p>
-            <strong>🔥 완전 자동 타입 추론:</strong> 모든 쿼리의 매개변수와
-            반환값이 정확히 추론됩니다
+            <strong>🔥 완전 자동 타입 추론:</strong> 범용 쿼리 시스템으로 모든
+            쿼리의 매개변수와 반환값이 정확히 추론됩니다
           </p>
           <p>
             <strong>🛡️ 컴파일 타임 안전성:</strong> 잘못된 플러그인 키, 쿼리명,
@@ -259,8 +260,8 @@ const RangePluginDemo = ({
               {state.days.map((dayInfo, index) => {
                 const date = dayInfo.date;
 
-                // 🔥 rangeQuery 헬퍼로 타입 안전한 상태 확인
-                const isSelected = rangeQuery.isDateSelected(date);
+                // 🔥 범용 쿼리 시스템으로 타입 안전한 상태 확인
+                const isSelected = query('range', 'isDateSelected', date);
                 const isRangeStart =
                   selectedRange?.start?.getTime() === date.getTime();
                 const isRangeEnd =

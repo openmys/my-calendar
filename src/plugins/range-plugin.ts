@@ -28,17 +28,6 @@ export interface RangeState {
 }
 
 /**
- * Range Plugin의 쿼리 시그니처 타입 정의
- */
-export type RangeQueries = {
-  getSelectedRange: () => { start: Date; end: Date } | null;
-  getSelectedDates: () => Date[];
-  isDateSelected: (date: Date) => boolean;
-  getSelectionMode: () => 'single' | 'range' | 'multiple';
-  isSelecting: () => boolean;
-};
-
-/**
  * Range Plugin State 클래스
  */
 class RangePluginState extends PluginState<RangeState> {
@@ -185,38 +174,6 @@ class RangePluginState extends PluginState<RangeState> {
     return true;
   }
 }
-
-/**
- * Range Plugin의 정확한 타입 정의
- */
-export type RangePlugin = Plugin<RangeState> & {
-  spec: {
-    key: 'range';
-    queries: {
-      getSelectedRange: (
-        state: CalendarState,
-        plugin: Plugin<RangeState>
-      ) => { start: Date; end: Date } | null;
-      getSelectedDates: (
-        state: CalendarState,
-        plugin: Plugin<RangeState>
-      ) => Date[];
-      isDateSelected: (
-        state: CalendarState,
-        plugin: Plugin<RangeState>,
-        date: Date
-      ) => boolean;
-      getSelectionMode: (
-        state: CalendarState,
-        plugin: Plugin<RangeState>
-      ) => 'single' | 'range' | 'multiple';
-      isSelecting: (
-        state: CalendarState,
-        plugin: Plugin<RangeState>
-      ) => boolean;
-    };
-  };
-};
 
 /**
  * Range Selection Plugin 생성 함수
@@ -481,5 +438,5 @@ export function createRangePlugin(options: RangeOptions = {}) {
     } as const,
   } as const;
 
-  return new Plugin(spec) as RangePlugin;
+  return new Plugin(spec);
 }

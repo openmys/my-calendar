@@ -27,14 +27,6 @@ export interface UseCalendarReturn<
   undo: () => boolean;
   redo: () => boolean;
   isReady: boolean;
-  // Range Plugin 전용 타입 안전한 쿼리 헬퍼 (backward compatibility)
-  rangeQuery: {
-    getSelectedRange(): { start: Date; end: Date } | null;
-    getSelectedDates(): Date[];
-    isDateSelected(date: Date): boolean;
-    getSelectionMode(): 'single' | 'range' | 'multiple';
-    isSelecting(): boolean;
-  };
 }
 
 /**
@@ -127,43 +119,6 @@ export function useCalendar<TPlugins extends readonly Plugin<any>[]>(
     return calendarRef.current.redo();
   }, []);
 
-  // Range Plugin 전용 타입 안전한 쿼리 헬퍼
-  const rangeQuery = useMemo(
-    () => ({
-      getSelectedRange(): { start: Date; end: Date } | null {
-        if (!calendarRef.current) return null;
-        return calendarRef.current.query('range', 'getSelectedRange') as {
-          start: Date;
-          end: Date;
-        } | null;
-      },
-      getSelectedDates(): Date[] {
-        if (!calendarRef.current) return [];
-        return calendarRef.current.query('range', 'getSelectedDates') as Date[];
-      },
-      isDateSelected(date: Date): boolean {
-        if (!calendarRef.current) return false;
-        return calendarRef.current.query(
-          'range',
-          'isDateSelected',
-          date
-        ) as boolean;
-      },
-      getSelectionMode(): 'single' | 'range' | 'multiple' {
-        if (!calendarRef.current) return 'single';
-        return calendarRef.current.query('range', 'getSelectionMode') as
-          | 'single'
-          | 'range'
-          | 'multiple';
-      },
-      isSelecting(): boolean {
-        if (!calendarRef.current) return false;
-        return calendarRef.current.query('range', 'isSelecting') as boolean;
-      },
-    }),
-    []
-  );
-
   return {
     state,
     calendar: calendarRef.current,
@@ -172,7 +127,6 @@ export function useCalendar<TPlugins extends readonly Plugin<any>[]>(
     undo,
     redo,
     isReady,
-    rangeQuery,
   };
 }
 
