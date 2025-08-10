@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 // 미니멀 캘린더 예시
 const MinimalCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
   const memoizedPlugins = useMemo(() => plugins, [plugins]);
-  const { state, execCommand, decorations } = useCalendar({
+  const { state, calendar, execCommand } = useCalendar({
     plugins: memoizedPlugins,
   });
 
@@ -43,13 +43,21 @@ const MinimalCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
           </div>
         ))}
         {state.days.map((day, index) => {
-          const dayDecorations = decorations.getDecorationsForDate(day.date);
-          const isDecorated = dayDecorations.length > 0;
+          // const dayDecorations = [];
+          const isDecorated = false;
 
           return (
             <div
               key={index}
-              onClick={() => execCommand('selectDate', day.date)}
+              onClick={e => {
+                const event = new MouseEvent('click', {
+                  ctrlKey: e.ctrlKey,
+                  shiftKey: e.shiftKey,
+                  metaKey: e.metaKey,
+                  bubbles: true,
+                });
+                calendar?.handleDateClick(day.date, event);
+              }}
               style={{
                 textAlign: 'center',
                 cursor: 'pointer',
@@ -74,7 +82,7 @@ const MinimalCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
 // 카드 스타일 캘린더 예시
 const CardCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
   const memoizedPlugins = useMemo(() => plugins, [plugins]);
-  const { state, execCommand, decorations } = useCalendar({
+  const { state, calendar, execCommand } = useCalendar({
     plugins: memoizedPlugins,
   });
 
@@ -173,14 +181,22 @@ const CardCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
         }}
       >
         {state.days.map((day, index) => {
-          const dayDecorations = decorations.getDecorationsForDate(day.date);
-          const isDecorated = dayDecorations.length > 0;
+          // const dayDecorations = [];
+          const isDecorated = false;
           const isToday = day.date.toDateString() === new Date().toDateString();
 
           return (
             <div
               key={index}
-              onClick={() => execCommand('selectDate', day.date)}
+              onClick={e => {
+                const event = new MouseEvent('click', {
+                  ctrlKey: e.ctrlKey,
+                  shiftKey: e.shiftKey,
+                  metaKey: e.metaKey,
+                  bubbles: true,
+                });
+                calendar?.handleDateClick(day.date, event);
+              }}
               style={{
                 textAlign: 'center',
                 cursor: 'pointer',
@@ -230,7 +246,7 @@ const CardCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
 // 리스트 스타일 캘린더 예시
 const ListCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
   const memoizedPlugins = useMemo(() => plugins, [plugins]);
-  const { state, execCommand, decorations } = useCalendar({
+  const { state, calendar, execCommand } = useCalendar({
     plugins: memoizedPlugins,
   });
 
@@ -306,17 +322,23 @@ const ListCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
             }}
           >
             {week.map((day, dayIndex) => {
-              const dayDecorations = decorations.getDecorationsForDate(
-                day.date
-              );
-              const isDecorated = dayDecorations.length > 0;
+              // const dayDecorations = [];
+              const isDecorated = false;
               const isToday =
                 day.date.toDateString() === new Date().toDateString();
 
               return (
                 <div
                   key={dayIndex}
-                  onClick={() => execCommand('selectDate', day.date)}
+                  onClick={e => {
+                    const event = new MouseEvent('click', {
+                      ctrlKey: e.ctrlKey,
+                      shiftKey: e.shiftKey,
+                      metaKey: e.metaKey,
+                      bubbles: true,
+                    });
+                    calendar?.handleDateClick(day.date, event);
+                  }}
                   style={{
                     padding: '12px 8px',
                     textAlign: 'center',
@@ -371,7 +393,7 @@ const ListCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
 // 모바일 스타일 캘린더 예시
 const MobileCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
   const memoizedPlugins = useMemo(() => plugins, [plugins]);
-  const { state, execCommand, decorations } = useCalendar({
+  const { state, calendar, execCommand } = useCalendar({
     plugins: memoizedPlugins,
   });
 
@@ -479,15 +501,23 @@ const MobileCalendar = ({ plugins = [] }: { plugins?: any[] }) => {
           }}
         >
           {state.days.map((day, index) => {
-            const dayDecorations = decorations.getDecorationsForDate(day.date);
-            const isDecorated = dayDecorations.length > 0;
+            // const dayDecorations = [];
+            const isDecorated = false;
             const isToday =
               day.date.toDateString() === new Date().toDateString();
 
             return (
               <div
                 key={index}
-                onClick={() => execCommand('selectDate', day.date)}
+                onClick={e => {
+                  const event = new MouseEvent('click', {
+                    ctrlKey: e.ctrlKey,
+                    shiftKey: e.shiftKey,
+                    metaKey: e.metaKey,
+                    bubbles: true,
+                  });
+                  calendar?.handleDateClick(day.date, event);
+                }}
                 style={{
                   textAlign: 'center',
                   cursor: 'pointer',

@@ -128,7 +128,7 @@ export function useCalendarPlugin(pluginKey: string) {
 
   const queryPlugin = React.useCallback(
     (queryName: string, ...args: any[]): any => {
-      return query(pluginKey, queryName, ...args);
+      return (query as any)(pluginKey, queryName, ...args);
     },
     [query, pluginKey]
   );

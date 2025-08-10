@@ -7,11 +7,9 @@ import {
   Transaction,
   CommandMap,
   Command,
-  DecorationType,
   PluginState,
 } from '@/types';
 import { Plugin, PluginSpec } from '@/core/plugin';
-import { DecorationSet } from '@/core/decoration';
 import { BasePluginState } from '@/core/plugin-state';
 
 /**
@@ -46,9 +44,6 @@ export interface PluginFactoryOptions<T = BaseCustomPluginState> {
 
   /** 커맨드 정의 */
   commands?: CommandMap;
-
-  /** 데코레이션 생성 함수 */
-  decorationFactory?: (state: CalendarState, pluginState: T) => DecorationSet;
 
   /** 이벤트 핸들러들 */
   eventHandlers?: {
@@ -147,7 +142,6 @@ export function createCustomPlugin<T = BaseCustomPluginState>(
     priority = 100,
     stateHandlers = {},
     commands = {},
-    decorationFactory,
     eventHandlers = {},
     transactionFilter,
     transactionPostProcessor,
@@ -194,16 +188,6 @@ export function createCustomPlugin<T = BaseCustomPluginState>(
 
       return commandMap;
     },
-
-    // 데코레이션
-    decorations: decorationFactory
-      ? (state: CalendarState, plugin: Plugin<T>) => {
-          const pluginState = plugin.getState(state);
-          return pluginState
-            ? decorationFactory(state, pluginState.value)
-            : new DecorationSet();
-        }
-      : undefined,
 
     // 이벤트 핸들러
     props: {
@@ -322,19 +306,7 @@ export namespace PluginTemplates {
           return true;
         },
       },
-      decorationFactory: (_state, pluginState) => {
-        const decorations = (pluginState as any).highlightDates.map(
-          (date: Date) => ({
-            type: 'highlight' as const,
-            from: date,
-            spec: {
-              class: (pluginState as any).highlightClass,
-              'data-highlighted': 'true',
-            },
-          })
-        );
-        return new DecorationSet(decorations);
-      },
+      // Decoration system has been removed
     });
   }
 
@@ -447,35 +419,7 @@ export namespace PluginTemplates {
           return true;
         },
       },
-      decorationFactory: (_state, pluginState) => {
-        const decorations: Array<{
-          type: DecorationType;
-          from: Date;
-          spec: Record<string, unknown>;
-        }> = [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // 명시적으로 비활성화된 날짜들
-        (pluginState as any).disabledDates.forEach((date: Date) => {
-          decorations.push({
-            type: 'disable' as const,
-            from: date,
-            spec: {
-              class: 'disabled-date',
-              'data-disabled': 'manual',
-            },
-          });
-        });
-
-        // 주말 비활성화 (필요한 경우 달력의 모든 날짜를 체크해야 함)
-        if ((pluginState as any).disableWeekends) {
-          // 이 부분은 달력의 현재 표시되는 날짜들을 기반으로 구현해야 함
-          // 여기서는 예시로만 표시
-        }
-
-        return new DecorationSet(decorations);
-      },
+      // Decoration system has been removed
       eventHandlers: {
         onDateClick: (date, event, _state, pluginState) => {
           // 비활성화된 날짜 클릭 차단
@@ -560,29 +504,26 @@ export namespace PluginHelpers {
   };
 
   /**
-   * 데코레이션 헬퍼
+   * 데코레이션 헬퍼 (제거됨)
    */
   export const DecorationHelpers = {
-    createHighlight: (date: Date, className: string = 'highlight') => ({
-      type: 'highlight' as const,
-      from: date,
-      spec: { class: className },
-    }),
-    createBadge: (date: Date, text: string, className: string = 'badge') => ({
-      type: 'badge' as const,
-      from: date,
-      spec: {
-        class: className,
-        'data-badge': text,
-      },
-    }),
-    createTooltip: (date: Date, tooltip: string) => ({
-      type: 'tooltip' as const,
-      from: date,
-      spec: {
-        'data-tooltip': tooltip,
-        title: tooltip,
-      },
-    }),
+    createHighlight: (_date: Date, _className: string = 'highlight') => {
+      console.warn(
+        'DecorationHelpers.createHighlight is deprecated. The decoration system has been removed.'
+      );
+      return null;
+    },
+    createBadge: (_date: Date, _text: string, _className: string = 'badge') => {
+      console.warn(
+        'DecorationHelpers.createBadge is deprecated. The decoration system has been removed.'
+      );
+      return null;
+    },
+    createTooltip: (_date: Date, _tooltip: string) => {
+      console.warn(
+        'DecorationHelpers.createTooltip is deprecated. The decoration system has been removed.'
+      );
+      return null;
+    },
   };
 }

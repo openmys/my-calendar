@@ -11,10 +11,13 @@ import React, {
 } from 'react';
 import { CalendarView } from '@/core/calendar-view';
 import { useCalendar, UseCalendarOptions } from './use-calendar';
-import { CalendarState, Decoration } from '@/types';
-import { DecorationData } from '@/core/decoration';
+import { CalendarState } from '@/types';
+import { Plugin } from '@/core/plugin';
+import { TypedQueryFunction } from '@/types/plugin-query-inference';
 
-export interface CalendarProps extends UseCalendarOptions {
+export interface CalendarProps<
+  TPlugins extends readonly Plugin<any>[] = readonly Plugin<any>[],
+> extends UseCalendarOptions<TPlugins> {
   className?: string;
   style?: React.CSSProperties;
   onDateClick?: (date: Date, event: React.MouseEvent) => void;
@@ -25,7 +28,7 @@ export interface CalendarProps extends UseCalendarOptions {
   onReady?: (calendar: CalendarView) => void;
 
   // 헤드리스 패턴을 위한 렌더링 커스터마이징 옵션
-  renderDay?: (day: CalendarDay, decorations: Decoration[]) => React.ReactNode;
+  renderDay?: (day: CalendarDay) => React.ReactNode;
   renderHeader?: (
     state: CalendarState,
     controls: CalendarControls
@@ -52,198 +55,241 @@ export interface CalendarControls {
   goToNextYear: () => void;
 }
 
-export interface CalendarRef {
+export interface CalendarRef<
+  TPlugins extends readonly Plugin<any>[] = readonly Plugin<any>[],
+> {
   getCalendar: () => CalendarView | null;
   getState: () => CalendarState | null;
   execCommand: (commandName: string, ...args: any[]) => boolean;
-  query: (pluginKey: string, queryName: string, ...args: any[]) => any;
-  getDecorations: () => Map<string, Decoration[]>;
-  getDecorationsForDate: (date: Date) => Decoration[];
+  query: TypedQueryFunction<TPlugins>;
 }
 
 /**
  * Calendar 컴포넌트
  */
-export const Calendar = forwardRef<CalendarRef, CalendarProps>((props, ref) => {
-  const {
-    className = '',
-    style,
-    onDateClick,
-    onDateDoubleClick,
-    onDateHover,
-    onMonthChange,
-    onViewChange,
-    onReady,
-    onStateChange,
-    onTransaction,
-    showHeader = true,
-    showWeekdays = true,
-    weekdayFormat = 'short',
-    renderDay,
-    renderHeader,
-    renderWeekdays,
-    ...calendarOptions
-  } = props;
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const previousStateRef = useRef<CalendarState | null>(null);
-
-  // useCalendar 훅 사용
-  const { state, calendar, execCommand, query, isReady, decorations } =
-    useCalendar({
-      ...calendarOptions,
-      onStateChange: newState => {
-        // 월 변경 감지
-        const prevState = previousStateRef.current;
-        if (
-          prevState &&
-          prevState.currentDate.getMonth() !== newState.currentDate.getMonth()
-        ) {
-          onMonthChange?.(newState.currentDate);
-        }
-
-        // 뷰 변경 감지
-        if (prevState && prevState.viewType !== newState.viewType) {
-          onViewChange?.(newState.viewType);
-        }
-
-        previousStateRef.current = newState;
-        onStateChange?.(newState);
-      },
+export const Calendar = forwardRef(
+  <TPlugins extends readonly Plugin<any>[] = readonly Plugin<any>[]>(
+    props: CalendarProps<TPlugins>,
+    ref: React.ForwardedRef<CalendarRef<TPlugins>>
+  ) => {
+    const {
+      className = '',
+      style,
+      onDateClick,
+      onDateDoubleClick,
+      onDateHover,
+      onMonthChange,
+      onViewChange,
+      onReady,
+      onStateChange,
       onTransaction,
-    });
+      showHeader = true,
+      showWeekdays = true,
+      weekdayFormat = 'short',
+      renderDay,
+      renderHeader,
+      renderWeekdays,
+      ...calendarOptions
+    } = props;
 
-  // Ready 콜백 호출
-  useEffect(() => {
-    if (calendar && isReady) {
-      onReady?.(calendar);
-    }
-  }, [calendar, isReady, onReady]);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const previousStateRef = useRef<CalendarState | null>(null);
 
-  // 컨트롤 함수들
-  const controls: CalendarControls = {
-    goToPreviousMonth: () => execCommand('goToPreviousMonth'),
-    goToNextMonth: () => execCommand('goToNextMonth'),
-    goToToday: () => execCommand('goToToday'),
-    goToPreviousYear: () => execCommand('goToPreviousYear'),
-    goToNextYear: () => execCommand('goToNextYear'),
-  };
+    // useCalendar 훅 사용
+    const { state, calendar, execCommand, query, isReady } =
+      useCalendar<TPlugins>({
+        ...calendarOptions,
+        onStateChange: newState => {
+          // 월 변경 감지
+          const prevState = previousStateRef.current;
+          if (
+            prevState &&
+            prevState.currentDate.getMonth() !== newState.currentDate.getMonth()
+          ) {
+            onMonthChange?.(newState.currentDate);
+          }
 
-  // 이벤트 핸들러들
-  const handleDateClick = (day: CalendarDay, event: React.MouseEvent) => {
-    // 헤드리스 패턴: 캘린더 로직 먼저 처리
-    calendar?.handleDateClick(day.date, event.nativeEvent);
-    // 사용자 콜백 호출
-    onDateClick?.(day.date, event);
-  };
+          // 뷰 변경 감지
+          if (prevState && prevState.viewType !== newState.viewType) {
+            onViewChange?.(newState.viewType);
+          }
 
-  const handleDateDoubleClick = (day: CalendarDay, event: React.MouseEvent) => {
-    onDateDoubleClick?.(day.date, event);
-  };
+          previousStateRef.current = newState;
+          onStateChange?.(newState);
+        },
+        onTransaction,
+      });
 
-  const handleDateHover = (day: CalendarDay, event: React.MouseEvent) => {
-    onDateHover?.(day.date, event);
-  };
+    // Ready 콜백 호출
+    useEffect(() => {
+      if (calendar && isReady) {
+        onReady?.(calendar);
+      }
+    }, [calendar, isReady, onReady]);
 
-  // Ref 연결
-  useImperativeHandle(
-    ref,
-    () => ({
-      getCalendar: () => calendar,
-      getState: () => state,
-      execCommand,
-      query,
-      getDecorations: () => decorations.getDecorationMap(),
-      getDecorationsForDate: (date: Date) =>
-        decorations.getDecorationsForDate(date),
-    }),
-    [calendar, state, execCommand, query, decorations]
-  );
-
-  // 캘린더 데이터 생성
-  const calendarDays = React.useMemo(() => {
-    if (!state) return [];
-
-    return state.days.map(day => ({
-      ...day,
-      isOtherMonth: day.date.getMonth() !== state.currentDate.getMonth(),
-    }));
-  }, [state]);
-
-  // 요일 이름 생성
-  const weekdays = React.useMemo(() => {
-    const baseWeekdays = {
-      long: [
-        '일요일',
-        '월요일',
-        '화요일',
-        '수요일',
-        '목요일',
-        '금요일',
-        '토요일',
-      ],
-      short: ['일', '월', '화', '수', '목', '금', '토'],
-      narrow: ['일', '월', '화', '수', '목', '금', '토'],
+    // 컨트롤 함수들
+    const controls: CalendarControls = {
+      goToPreviousMonth: () => execCommand('goToPreviousMonth'),
+      goToNextMonth: () => execCommand('goToNextMonth'),
+      goToToday: () => execCommand('goToToday'),
+      goToPreviousYear: () => execCommand('goToPreviousYear'),
+      goToNextYear: () => execCommand('goToNextYear'),
     };
-    return baseWeekdays[weekdayFormat];
-  }, [weekdayFormat]);
 
-  if (!state) {
-    return <div className='calendar-loading'>로딩 중...</div>;
-  }
+    // 이벤트 핸들러들
+    const handleDateClick = (day: CalendarDay, event: React.MouseEvent) => {
+      // 헤드리스 패턴: 캘린더 로직 먼저 처리
+      calendar?.handleDateClick(day.date, event.nativeEvent);
+      // 사용자 콜백 호출
+      onDateClick?.(day.date, event);
+    };
 
-  const combinedClassName = ['my-calendar', className]
-    .filter(Boolean)
-    .join(' ');
+    const handleDateDoubleClick = (
+      day: CalendarDay,
+      event: React.MouseEvent
+    ) => {
+      onDateDoubleClick?.(day.date, event);
+    };
 
-  return (
-    <div
-      ref={containerRef}
-      className={combinedClassName}
-      style={style}
-      data-testid='calendar'
-    >
-      {/* 헤더 렌더링 */}
-      {showHeader &&
-        (renderHeader ? (
-          renderHeader(state, controls)
-        ) : (
-          <DefaultCalendarHeader state={state} controls={controls} />
-        ))}
+    const handleDateHover = (day: CalendarDay, event: React.MouseEvent) => {
+      onDateHover?.(day.date, event);
+    };
 
-      {/* 캘린더 본체 */}
-      <div className='calendar-body'>
-        {/* 요일 헤더 */}
-        {showWeekdays &&
-          (renderWeekdays ? (
-            renderWeekdays(weekdays)
+    // Ref 연결
+    useImperativeHandle(
+      ref,
+      () => ({
+        getCalendar: () => calendar,
+        getState: () => state,
+        execCommand,
+        query,
+      }),
+      [calendar, state, execCommand, query]
+    );
+
+    // 캘린더 데이터 생성
+    const calendarDays = React.useMemo(() => {
+      if (!state) return [];
+
+      return state.days.map(day => ({
+        ...day,
+        isOtherMonth: day.date.getMonth() !== state.currentDate.getMonth(),
+      }));
+    }, [state]);
+
+    // 요일 이름 생성
+    const weekdays = React.useMemo(() => {
+      const baseWeekdays = {
+        long: [
+          '일요일',
+          '월요일',
+          '화요일',
+          '수요일',
+          '목요일',
+          '금요일',
+          '토요일',
+        ],
+        short: ['일', '월', '화', '수', '목', '금', '토'],
+        narrow: ['일', '월', '화', '수', '목', '금', '토'],
+      };
+      return baseWeekdays[weekdayFormat];
+    }, [weekdayFormat]);
+
+    if (!state) {
+      return <div className='calendar-loading'>로딩 중...</div>;
+    }
+
+    const combinedClassName = ['my-calendar', className]
+      .filter(Boolean)
+      .join(' ');
+
+    return (
+      <div
+        ref={containerRef}
+        className={combinedClassName}
+        style={style}
+        data-testid='calendar'
+      >
+        {/* 헤더 렌더링 */}
+        {showHeader &&
+          (renderHeader ? (
+            renderHeader(state, controls)
           ) : (
-            <DefaultWeekdaysHeader weekdays={weekdays} />
+            <DefaultCalendarHeader state={state} controls={controls} />
           ))}
 
-        {/* 날짜 그리드 */}
-        <div className='calendar-grid'>
-          {calendarDays.map(day => {
-            const dayDecorations = decorations.getDecorationsForDate(day.date);
-
-            return renderDay ? (
-              renderDay(day, dayDecorations)
+        {/* 캘린더 본체 */}
+        <div className='calendar-body'>
+          {/* 요일 헤더 */}
+          {showWeekdays &&
+            (renderWeekdays ? (
+              renderWeekdays(weekdays)
             ) : (
-              <DefaultCalendarDay
-                key={day.date.toISOString()}
-                day={day}
-                decorations={dayDecorations}
-                onClick={e => handleDateClick(day, e)}
-                onDoubleClick={e => handleDateDoubleClick(day, e)}
-                onMouseEnter={e => handleDateHover(day, e)}
-              />
-            );
-          })}
+              <DefaultWeekdaysHeader weekdays={weekdays} />
+            ))}
+
+          {/* 날짜 그리드 */}
+          <div className='calendar-grid'>
+            {calendarDays.map(day => {
+              // Range Plugin 상태 확인
+              let isSelected = false;
+              let isRangeStart = false;
+              let isRangeEnd = false;
+
+              try {
+                // 새로운 타입 안전한 쿼리 사용 시도
+                const result = (query as any)(
+                  'range',
+                  'isDateSelected',
+                  day.date
+                );
+                isSelected = Boolean(result);
+
+                const selectedRange = (query as any)(
+                  'range',
+                  'getSelectedRange'
+                ) as { start?: Date; end?: Date } | null;
+                if (selectedRange) {
+                  isRangeStart = Boolean(
+                    selectedRange.start &&
+                      day.date.getTime() === selectedRange.start.getTime()
+                  );
+                  isRangeEnd = Boolean(
+                    selectedRange.end &&
+                      day.date.getTime() === selectedRange.end.getTime()
+                  );
+                }
+              } catch (e) {
+                // Range Plugin이 없을 수도 있음
+              }
+
+              const dayClassName = [
+                isSelected ? 'selected' : '',
+                isRangeStart ? 'range-start' : '',
+                isRangeEnd ? 'range-end' : '',
+              ]
+                .filter(Boolean)
+                .join(' ');
+
+              return renderDay ? (
+                renderDay(day)
+              ) : (
+                <DefaultCalendarDay
+                  key={day.date.toISOString()}
+                  day={day}
+                  onClick={e => handleDateClick(day, e)}
+                  onDoubleClick={e => handleDateDoubleClick(day, e)}
+                  onMouseEnter={e => handleDateHover(day, e)}
+                  className={dayClassName}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 Calendar.displayName = 'Calendar';
 
@@ -254,56 +300,6 @@ export const CalendarUtils = {
   /**
    * 데코레이션에서 className 추출
    */
-  getClassNameFromDecorations: (decorations: Decoration[]): string => {
-    return decorations
-      .map(d => d.spec.class)
-      .filter(Boolean)
-      .join(' ');
-  },
-
-  /**
-   * 데코레이션에서 스타일 객체 추출
-   */
-  getStyleFromDecorations: (decorations: Decoration[]): React.CSSProperties => {
-    const style: React.CSSProperties = {};
-
-    decorations.forEach(decoration => {
-      if (decoration.spec.style) {
-        const styleObj = decoration.spec.style
-          .split(';')
-          .reduce((acc, rule) => {
-            const [property, value] = rule.split(':').map(s => s.trim());
-            if (property && value) {
-              const camelProperty = property.replace(/-([a-z])/g, (_, letter) =>
-                letter.toUpperCase()
-              );
-              acc[camelProperty] = value;
-            }
-            return acc;
-          }, {} as any);
-        Object.assign(style, styleObj);
-      }
-    });
-
-    return style;
-  },
-
-  /**
-   * 데코레이션에서 HTML 속성 추출
-   */
-  getAttributesFromDecorations: (
-    decorations: Decoration[]
-  ): Record<string, string> => {
-    const attributes: Record<string, string> = {};
-
-    decorations.forEach(decoration => {
-      if (decoration.spec.attributes) {
-        Object.assign(attributes, decoration.spec.attributes);
-      }
-    });
-
-    return attributes;
-  },
 
   /**
    * 날짜 키 생성 (데코레이션 매핑용)
@@ -407,7 +403,6 @@ const DefaultWeekdaysHeader: React.FC<DefaultWeekdaysHeaderProps> = ({
  */
 interface DefaultCalendarDayProps {
   day: CalendarDay;
-  decorations: Decoration[];
   onClick?: (event: React.MouseEvent) => void;
   onDoubleClick?: (event: React.MouseEvent) => void;
   onMouseEnter?: (event: React.MouseEvent) => void;
@@ -416,61 +411,17 @@ interface DefaultCalendarDayProps {
 
 const DefaultCalendarDay: React.FC<DefaultCalendarDayProps> = ({
   day,
-  decorations,
   onClick,
   onDoubleClick,
   onMouseEnter,
   className = '',
 }) => {
-  // 데코레이션에서 스타일 정보 추출
-  const decorationData = React.useMemo(() => {
-    const data: DecorationData = {
-      className: '',
-      style: {},
-      attributes: {},
-    };
-
-    decorations.forEach(decoration => {
-      if (decoration.spec.class) {
-        data.className += ` ${decoration.spec.class}`;
-      }
-      if (decoration.spec.style) {
-        // CSS 문자열을 객체로 변환 (간단한 구현)
-        const styleObj = decoration.spec.style
-          .split(';')
-          .reduce((acc, rule) => {
-            const [property, value] = rule.split(':').map(s => s.trim());
-            if (property && value) {
-              const camelProperty = property.replace(/-([a-z])/g, (_, letter) =>
-                letter.toUpperCase()
-              );
-              acc[camelProperty] = value;
-            }
-            return acc;
-          }, {} as any);
-        Object.assign(data.style ?? {}, styleObj);
-      }
-      if (decoration.spec.attributes) {
-        Object.assign(data.attributes ?? {}, decoration.spec.attributes);
-      }
-      if (
-        decoration.type === 'overlay' &&
-        decoration.spec.attributes?.['data-content']
-      ) {
-        data.overlayContent = decoration.spec.attributes['data-content'];
-      }
-    });
-
-    return data;
-  }, [decorations]);
-
   const dayClassName = [
     'calendar-day',
     day.isToday ? 'today' : '',
     day.isWeekend ? 'weekend' : '',
     day.isOtherMonth ? 'other-month' : '',
     day.isDisabled ? 'disabled' : '',
-    decorationData.className,
     className,
   ]
     .filter(Boolean)
@@ -479,19 +430,12 @@ const DefaultCalendarDay: React.FC<DefaultCalendarDayProps> = ({
   return (
     <div
       className={dayClassName}
-      style={decorationData.style}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onMouseEnter={onMouseEnter}
       data-date={day.date.toISOString()}
-      {...decorationData.attributes}
     >
       <span className='calendar-day-number'>{day.date.getDate()}</span>
-      {decorationData.overlayContent && (
-        <div className='calendar-day-overlay'>
-          {decorationData.overlayContent}
-        </div>
-      )}
     </div>
   );
 };

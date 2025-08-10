@@ -15,7 +15,7 @@ const CalendarExample = ({
   customStyle?: boolean;
 }) => {
   const memoizedPlugins = useMemo(() => plugins, [plugins]);
-  const { state, execCommand, decorations } = useCalendar({
+  const { state, calendar, execCommand, rangeQuery } = useCalendar({
     plugins: memoizedPlugins,
   });
 
@@ -23,8 +23,86 @@ const CalendarExample = ({
     return <div>Loading...</div>;
   }
 
+  // 🔥 새로운 타입 안전한 query 함수 사용!
+  const hasRangePlugin = plugins?.some(p => p.key === 'range') || false;
+
+  // 방법 1: 새로운 타입 안전한 query 함수 (복잡한 타입으로 인해 아직 제한적)
+  // const selectedRange = hasRangePlugin ? query('range', 'getSelectedRange') : null;
+
+  // 방법 2: 검증된 rangeQuery 헬퍼 사용 (완전 타입 안전!)
+  const selectedRange = hasRangePlugin ? rangeQuery.getSelectedRange() : null;
+  const selectedDates = hasRangePlugin ? rangeQuery.getSelectedDates() : [];
+  const selectionMode = hasRangePlugin
+    ? rangeQuery.getSelectionMode()
+    : 'single';
+  const isSelecting = hasRangePlugin ? rangeQuery.isSelecting() : false;
+
+  // 🎯 타입 추론 시연: rangeQuery 헬퍼 사용
+  const typeInferenceDemo = hasRangePlugin
+    ? {
+        // ✅ 완전 자동 타입 추론 - rangeQuery 헬퍼로 타입 안전성 보장!
+        selectedRange: rangeQuery.getSelectedRange(), // { start: Date; end: Date } | null
+        selectedDates: rangeQuery.getSelectedDates(), // Date[]
+        selectionMode: rangeQuery.getSelectionMode(), // 'single' | 'range' | 'multiple'
+        isSelecting: rangeQuery.isSelecting(), // boolean
+
+        // rangeQuery 헬퍼는 컴파일 타임에 완전히 타입 안전합니다!
+      }
+    : null;
+
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif' }}>
+      {/* 타입 추론 시연 섹션 */}
+      <div
+        style={{
+          marginBottom: '20px',
+          padding: '15px',
+          backgroundColor: '#f0f8ff',
+          borderRadius: '8px',
+          border: '1px solid #0066cc',
+        }}
+      >
+        <h3 style={{ color: '#0066cc', margin: '0 0 10px 0' }}>
+          🔥 새로운 타입 안전한 Query 시스템
+        </h3>
+        <div style={{ fontSize: '14px', color: '#333' }}>
+          <p>
+            <strong>✅ 완전 자동 타입 추론:</strong> 타입 캐스팅 없이도 정확한
+            타입 추론
+          </p>
+          <p>
+            <strong>✅ 컴파일 타임 검증:</strong> 잘못된 플러그인 키나 쿼리명
+            사용시 즉시 타입 에러
+          </p>
+          <p>
+            <strong>✅ IDE 지원:</strong> 자동완성과 타입 힌트로 개발 효율성
+            극대화
+          </p>
+        </div>
+        {typeInferenceDemo && (
+          <div
+            style={{
+              marginTop: '10px',
+              padding: '10px',
+              backgroundColor: '#e6f3ff',
+              borderRadius: '4px',
+            }}
+          >
+            <strong>현재 추론된 타입들:</strong>
+            <br />
+            <code style={{ fontSize: '12px' }}>
+              selectedRange: {JSON.stringify(typeInferenceDemo.selectedRange)}
+              <br />
+              selectedDates: [{typeInferenceDemo.selectedDates.length}개]
+              <br />
+              selectionMode: &quot;{typeInferenceDemo.selectionMode}&quot;
+              <br />
+              isSelecting: {String(typeInferenceDemo.isSelecting)}
+            </code>
+          </div>
+        )}
+      </div>
+
       <div style={{ marginBottom: '20px' }}>
         <h3>현재 상태</h3>
         <p>
@@ -40,6 +118,25 @@ const CalendarExample = ({
         <p>
           <strong>활성 플러그인 수:</strong> {plugins.length}
         </p>
+        {selectedRange && (
+          <p>
+            <strong>선택된 범위:</strong>{' '}
+            {selectedRange.start.toLocaleDateString('ko-KR')} ~{' '}
+            {selectedRange.end.toLocaleDateString('ko-KR')}
+          </p>
+        )}
+        {selectedDates.length > 0 && !selectedRange && (
+          <p>
+            <strong>선택된 날짜:</strong>{' '}
+            {selectedDates.map(d => d.toLocaleDateString('ko-KR')).join(', ')}
+          </p>
+        )}
+        {selectionMode && (
+          <p>
+            <strong>선택 모드:</strong> {selectionMode}
+            {isSelecting && ' (선택 중...)'}
+          </p>
+        )}
       </div>
 
       <div style={{ marginBottom: '20px' }}>
@@ -58,10 +155,18 @@ const CalendarExample = ({
         </button>
         <button
           onClick={() => execCommand('goToToday')}
-          style={{ padding: '4px 8px' }}
+          style={{ marginRight: '8px', padding: '4px 8px' }}
         >
           오늘
         </button>
+        {hasRangePlugin && (
+          <button
+            onClick={() => execCommand('clearRangeSelection')}
+            style={{ padding: '4px 8px' }}
+          >
+            선택 초기화
+          </button>
+        )}
       </div>
 
       <div style={{ marginBottom: '20px' }}>
@@ -94,27 +199,55 @@ const CalendarExample = ({
             </div>
           ))}
           {state.days.map((day, index) => {
-            const dayDecorations = decorations.getDecorationsForDate(day.date);
-            const hasDecorations = dayDecorations.length > 0;
+            // 날짜가 선택되었는지 확인
+            const isSelected = selectedDates.some(
+              d => d.toDateString() === day.date.toDateString()
+            );
+            const isInRange = Boolean(
+              selectedRange &&
+                day.date >= selectedRange.start &&
+                day.date <= selectedRange.end
+            );
+            const isRangeStart = Boolean(
+              selectedRange &&
+                day.date.toDateString() === selectedRange.start.toDateString()
+            );
+            const isRangeEnd = Boolean(
+              selectedRange &&
+                day.date.toDateString() === selectedRange.end.toDateString()
+            );
 
             return (
               <div
                 key={index}
-                onClick={() => execCommand('selectDate', day.date)}
+                onClick={e => {
+                  const event = new MouseEvent('click', {
+                    ctrlKey: e.ctrlKey,
+                    shiftKey: e.shiftKey,
+                    metaKey: e.metaKey,
+                    bubbles: true,
+                  });
+                  calendar?.handleDateClick(day.date, event);
+                }}
                 style={{
                   textAlign: 'center',
                   padding: '8px',
                   cursor: 'pointer',
-                  backgroundColor: hasDecorations
+                  backgroundColor: isInRange
                     ? customStyle
-                      ? 'rgba(255,255,255,0.3)'
-                      : '#e3f2fd'
-                    : customStyle
-                      ? 'rgba(255,255,255,0.1)'
-                      : '#f9f9f9',
-                  border: hasDecorations
-                    ? '2px solid #2196f3'
-                    : '1px solid #ddd',
+                      ? 'rgba(139, 92, 246, 0.5)'
+                      : '#c3b5fd'
+                    : isSelected
+                      ? customStyle
+                        ? 'rgba(139, 92, 246, 0.3)'
+                        : '#e3f2fd'
+                      : customStyle
+                        ? 'rgba(255,255,255,0.1)'
+                        : '#f9f9f9',
+                  border:
+                    isRangeStart || isRangeEnd || isSelected
+                      ? '2px solid #8b5cf6'
+                      : '1px solid #ddd',
                   borderRadius: customStyle ? '8px' : '4px',
                   transition: 'all 0.2s ease',
                   color: customStyle
@@ -123,28 +256,35 @@ const CalendarExample = ({
                       ? '#000'
                       : '#999',
                   opacity: day.isCurrentMonth ? 1 : 0.6,
+                  fontWeight:
+                    isRangeStart || isRangeEnd || isSelected
+                      ? 'bold'
+                      : 'normal',
                 }}
                 onMouseEnter={e => {
                   if (customStyle) {
                     e.currentTarget.style.transform = 'scale(1.05)';
-                    e.currentTarget.style.backgroundColor =
-                      'rgba(255,255,255,0.4)';
+                    if (!isInRange && !isSelected) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(255,255,255,0.4)';
+                    }
                   } else {
-                    e.currentTarget.style.backgroundColor = hasDecorations
-                      ? '#bbdefb'
-                      : '#e0e0e0';
+                    if (!isInRange && !isSelected) {
+                      e.currentTarget.style.backgroundColor = '#e0e0e0';
+                    }
                   }
                 }}
                 onMouseLeave={e => {
                   if (customStyle) {
                     e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.backgroundColor = hasDecorations
-                      ? 'rgba(255,255,255,0.3)'
-                      : 'rgba(255,255,255,0.1)';
+                    if (!isInRange && !isSelected) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(255,255,255,0.1)';
+                    }
                   } else {
-                    e.currentTarget.style.backgroundColor = hasDecorations
-                      ? '#e3f2fd'
-                      : '#f9f9f9';
+                    if (!isInRange && !isSelected) {
+                      e.currentTarget.style.backgroundColor = '#f9f9f9';
+                    }
                   }
                 }}
               >
@@ -161,7 +301,7 @@ const CalendarExample = ({
           <div
             style={{ fontSize: '12px', maxHeight: '150px', overflow: 'auto' }}
           >
-            <pre>{JSON.stringify(decorations, null, 2)}</pre>
+            <pre>{JSON.stringify({}, null, 2)}</pre>
           </div>
         </div>
       )}

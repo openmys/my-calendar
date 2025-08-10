@@ -385,46 +385,42 @@ describe('PluginPresets', () => {
 });
 
 describe('DecorationBuilders', () => {
-  it('should build highlight decorations', () => {
+  it('should handle removed decoration system', () => {
     const dates = [new Date('2024-01-01'), new Date('2024-01-02')];
     const decorationFn = DecorationBuilders.highlightDates(
       dates,
       'custom-highlight'
     );
 
-    const decorationSet = decorationFn({} as any, {});
+    const result = decorationFn();
 
-    expect(decorationSet).toBeDefined();
-    // 실제 데코레이션 내용은 DecorationSet의 구현에 따라 달라짐
+    expect(result).toEqual([]);
+    // Decoration system has been removed
   });
 
-  it('should build badge decorations', () => {
+  it('should handle removed badge decorations', () => {
     const dateMap = new Map([
       [new Date('2024-01-01'), 'Badge 1'],
       [new Date('2024-01-02'), 'Badge 2'],
     ]);
 
     const decorationFn = DecorationBuilders.badgeDates(dateMap, 'custom-badge');
-    const decorationSet = decorationFn({} as any, {});
+    const result = decorationFn();
 
-    expect(decorationSet).toBeDefined();
+    expect(result).toEqual([]);
   });
 
-  it('should build conditional highlight decorations', () => {
+  it('should handle removed conditional highlight decorations', () => {
     const condition = vi.fn((date: Date) => date.getDay() === 0); // 일요일만
     const decorationFn = DecorationBuilders.conditionalHighlight(
       condition,
       'sunday-highlight'
     );
 
-    const mockState = {
-      currentDate: new Date('2024-01-15'),
-    } as any;
+    const result = decorationFn();
 
-    const decorationSet = decorationFn(mockState, {});
-
-    expect(decorationSet).toBeDefined();
-    expect(condition).toHaveBeenCalled();
+    expect(result).toEqual([]);
+    // Decoration system has been removed, so condition should not be called
   });
 });
 

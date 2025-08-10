@@ -6,43 +6,46 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { CalendarView, CalendarViewOptions } from '@/core/calendar-view';
 import { CalendarState, Transaction, PluginState } from '@/types';
+import { TypedQueryFunction } from '@/types/plugin-query-inference';
 import { Plugin } from '@/core/plugin';
-import { DecorationManager } from '@/core/decoration';
 
-export interface UseCalendarOptions
-  extends Omit<CalendarViewOptions, 'plugins'> {
-  plugins?: Plugin[];
+export interface UseCalendarOptions<
+  TPlugins extends readonly Plugin<any>[] = readonly Plugin<any>[],
+> extends Omit<CalendarViewOptions, 'plugins'> {
+  plugins?: TPlugins;
   onStateChange?: (state: CalendarState) => void;
   onTransaction?: (transaction: Transaction) => void;
 }
 
-export interface UseCalendarReturn {
+export interface UseCalendarReturn<
+  TPlugins extends readonly Plugin<any>[] = readonly Plugin<any>[],
+> {
   state: CalendarState | null;
   calendar: CalendarView | null;
   execCommand: (commandName: string, ...args: unknown[]) => boolean;
-  query: <T = unknown>(
-    pluginKey: string,
-    queryName: string,
-    ...args: unknown[]
-  ) => T;
+  query: TypedQueryFunction<TPlugins>;
   undo: () => boolean;
   redo: () => boolean;
   isReady: boolean;
-  decorations: DecorationManager;
+  // Range Plugin 전용 타입 안전한 쿼리 헬퍼 (backward compatibility)
+  rangeQuery: {
+    getSelectedRange(): { start: Date; end: Date } | null;
+    getSelectedDates(): Date[];
+    isDateSelected(date: Date): boolean;
+    getSelectionMode(): 'single' | 'range' | 'multiple';
+    isSelecting(): boolean;
+  };
 }
 
 /**
  * useCalendar Hook
  */
-export function useCalendar(
-  options: UseCalendarOptions = {}
-): UseCalendarReturn {
+export function useCalendar<TPlugins extends readonly Plugin<any>[]>(
+  options: UseCalendarOptions<TPlugins> = {} as UseCalendarOptions<TPlugins>
+): UseCalendarReturn<TPlugins> {
   const [state, setState] = useState<CalendarState | null>(null);
   const [isReady, setIsReady] = useState(false);
   const calendarRef = useRef<CalendarView | null>(null);
-  const decorationManagerRef = useRef<DecorationManager>(
-    new DecorationManager()
-  );
   const optionsRef = useRef(options);
 
   // options ref 업데이트
@@ -53,7 +56,7 @@ export function useCalendar(
   // 옵션을 깊은 메모이제이션으로 처리하여 무한 리렌더링 방지
   const memoizedOptions = useMemo(() => {
     return {
-      plugins: options.plugins ?? [],
+      plugins: options.plugins ? [...options.plugins] : [], // readonly 배열을 일반 배열로 변환
       initialState: options.initialState,
     };
   }, [
@@ -63,9 +66,6 @@ export function useCalendar(
 
   // 캘린더 초기화
   useEffect(() => {
-    // 정리 함수에서 사용할 ref 값들을 미리 캡처
-    const decorationManager = decorationManagerRef.current;
-
     // CalendarView 인스턴스 생성 (헤드리스 버전)
     const calendar = new CalendarView(memoizedOptions);
     calendarRef.current = calendar;
@@ -77,11 +77,6 @@ export function useCalendar(
     // 상태 변경 리스너 등록
     const unsubscribeState = calendar.onStateChange(newState => {
       setState(newState);
-
-      // 데코레이션 업데이트
-      const decorations = calendar.getDecorations();
-      decorationManagerRef.current.updateDecorations(decorations);
-
       // ref를 통해 최신 콜백 호출
       optionsRef.current.onStateChange?.(newState);
     });
@@ -98,9 +93,6 @@ export function useCalendar(
       unsubscribeTransaction();
       calendar.destroy();
       calendarRef.current = null;
-      if (decorationManager) {
-        decorationManager.dispose();
-      }
       setIsReady(false);
     };
   }, [memoizedOptions]);
@@ -114,18 +106,14 @@ export function useCalendar(
     []
   );
 
-  // 쿼리 함수
+  // 완전 타입 안전한 쿼리 함수
   const query = useCallback(
-    <T = unknown>(
-      pluginKey: string,
-      queryName: string,
-      ...args: unknown[]
-    ): T => {
-      if (!calendarRef.current) return undefined as T;
-      return calendarRef.current.query(pluginKey, queryName, ...args) as T;
+    (pluginKey: string, queryName: string, ...args: unknown[]) => {
+      if (!calendarRef.current) return undefined;
+      return calendarRef.current.query(pluginKey, queryName, ...args);
     },
     []
-  );
+  ) as TypedQueryFunction<TPlugins>;
 
   // Undo
   const undo = useCallback((): boolean => {
@@ -139,6 +127,43 @@ export function useCalendar(
     return calendarRef.current.redo();
   }, []);
 
+  // Range Plugin 전용 타입 안전한 쿼리 헬퍼
+  const rangeQuery = useMemo(
+    () => ({
+      getSelectedRange(): { start: Date; end: Date } | null {
+        if (!calendarRef.current) return null;
+        return calendarRef.current.query('range', 'getSelectedRange') as {
+          start: Date;
+          end: Date;
+        } | null;
+      },
+      getSelectedDates(): Date[] {
+        if (!calendarRef.current) return [];
+        return calendarRef.current.query('range', 'getSelectedDates') as Date[];
+      },
+      isDateSelected(date: Date): boolean {
+        if (!calendarRef.current) return false;
+        return calendarRef.current.query(
+          'range',
+          'isDateSelected',
+          date
+        ) as boolean;
+      },
+      getSelectionMode(): 'single' | 'range' | 'multiple' {
+        if (!calendarRef.current) return 'single';
+        return calendarRef.current.query('range', 'getSelectionMode') as
+          | 'single'
+          | 'range'
+          | 'multiple';
+      },
+      isSelecting(): boolean {
+        if (!calendarRef.current) return false;
+        return calendarRef.current.query('range', 'isSelecting') as boolean;
+      },
+    }),
+    []
+  );
+
   return {
     state,
     calendar: calendarRef.current,
@@ -147,7 +172,7 @@ export function useCalendar(
     undo,
     redo,
     isReady,
-    decorations: decorationManagerRef.current,
+    rangeQuery,
   };
 }
 

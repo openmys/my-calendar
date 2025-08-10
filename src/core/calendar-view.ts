@@ -6,7 +6,6 @@
 import { CalendarState, Transaction } from '@/types';
 import { Plugin, PluginManager } from './plugin';
 import { CommandManager } from './command';
-import { DecorationManager, DecorationSet } from './decoration';
 import { CalendarStateFactory, StateUpdater } from './state';
 import { TransactionHistory, TransactionValidator } from './transaction';
 
@@ -23,7 +22,6 @@ export class CalendarView {
   private state: CalendarState;
   private pluginManager: PluginManager;
   private commandManager: CommandManager;
-  private decorationManager: DecorationManager;
   private transactionHistory: TransactionHistory;
   private isDestroyed = false;
 
@@ -36,7 +34,6 @@ export class CalendarView {
     // 매니저들 초기화
     this.pluginManager = new PluginManager();
     this.commandManager = new CommandManager();
-    this.decorationManager = new DecorationManager();
     this.transactionHistory = new TransactionHistory();
 
     // 플러그인 등록
@@ -66,7 +63,7 @@ export class CalendarView {
    */
   dispatch(transaction: Transaction): void {
     if (this.isDestroyed) {
-      console.warn('Cannot dispatch transaction on destroyed CalendarView');
+      // Cannot dispatch transaction on destroyed CalendarView
       return;
     }
 
@@ -108,7 +105,7 @@ export class CalendarView {
       // 9. 추가 트랜잭션 재귀 처리
       additionalTransactions.forEach(tr => this.dispatch(tr));
     } catch (error) {
-      console.error('Error dispatching transaction:', error);
+      // Error dispatching transaction
     }
   }
 
@@ -138,20 +135,6 @@ export class CalendarView {
       this.state,
       ...args
     );
-  }
-
-  /**
-   * 데코레이션 데이터 반환
-   */
-  getDecorations(): DecorationSet {
-    if (this.isDestroyed) return new DecorationSet();
-
-    try {
-      return this.pluginManager.getAllDecorations(this.state);
-    } catch (error) {
-      console.error('Error getting decorations:', error);
-      return new DecorationSet();
-    }
   }
 
   /**
@@ -224,9 +207,6 @@ export class CalendarView {
    */
   destroy(): void {
     if (this.isDestroyed) return;
-
-    // 데코레이션 정리
-    this.decorationManager.dispose();
 
     // 플러그인 정리
     this.pluginManager.clear();
@@ -340,7 +320,7 @@ export class CalendarView {
   handleDateClick(date: Date, event?: MouseEvent): boolean {
     const handled = this.pluginManager.handleEvent(
       'dateClick',
-      { date, event },
+      { date, event, calendar: this },
       this.state
     );
 

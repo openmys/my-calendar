@@ -5,7 +5,6 @@
 
 import { Plugin, PluginSpec } from '@/core/plugin';
 import { PluginState, Transaction, CalendarState } from '@/types';
-import { DecorationSet, DecorationFactory } from '@/core/decoration';
 import { transactions } from '@/core/transaction';
 
 export interface CalendarEvent {
@@ -503,68 +502,6 @@ export function createEventPlugin(
           return true;
         },
     }),
-
-    decorations: (state, plugin) => {
-      const eventState = plugin.getState(state);
-      if (!eventState) return new DecorationSet();
-
-      const decorations: any[] = [];
-
-      // 각 날짜의 이벤트 표시
-      for (const [dateKey, eventIds] of eventState.value.eventsByDate) {
-        const date = new Date(dateKey);
-        const eventsOnDate = eventIds
-          .map(id => eventState.value.events.get(id))
-          .filter(Boolean) as CalendarEvent[];
-
-        if (eventsOnDate.length > 0) {
-          // 이벤트 개수 표시
-          decorations.push(
-            DecorationFactory.overlay(
-              date,
-              eventsOnDate.length.toString(),
-              'calendar-event-count'
-            )
-          );
-
-          // 각 이벤트를 작은 점으로 표시
-          eventsOnDate.forEach(event => {
-            const widget = () => {
-              const eventDot = document.createElement('div');
-              eventDot.className = 'calendar-event-dot';
-              eventDot.style.backgroundColor = event.color ?? '#3174ad';
-              eventDot.style.width = '6px';
-              eventDot.style.height = '6px';
-              eventDot.style.borderRadius = '50%';
-              eventDot.style.display = 'inline-block';
-              eventDot.style.margin = '1px';
-              eventDot.title = event.title;
-              eventDot.setAttribute('data-event-id', event.id);
-              return eventDot;
-            };
-
-            decorations.push(DecorationFactory.widget(date, widget));
-          });
-
-          // 선택된 이벤트 강조
-          if (eventState.value.selectedEventId) {
-            const selectedEvent = eventState.value.events.get(
-              eventState.value.selectedEventId
-            );
-            if (selectedEvent && eventsOnDate.includes(selectedEvent)) {
-              decorations.push(
-                DecorationFactory.highlight(
-                  date,
-                  'calendar-selected-event-date'
-                )
-              );
-            }
-          }
-        }
-      }
-
-      return new DecorationSet(decorations);
-    },
 
     props: {
       handleDateClick: (_date, event, _state, _plugin) => {

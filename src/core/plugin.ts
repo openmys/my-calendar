@@ -12,7 +12,6 @@ import {
   DragData,
   ResizeData,
 } from '@/types';
-import { DecorationSet } from './decoration';
 
 /**
  * 플러그인 인터페이스
@@ -32,9 +31,6 @@ export interface PluginSpec<T = any> {
 
   // 커맨드 제공
   commands?: (plugin: Plugin<T>) => CommandMap;
-
-  // 데코레이션 제공
-  decorations?: (state: CalendarState, plugin: Plugin<T>) => DecorationSet;
 
   // 이벤트 핸들러
   props?: {
@@ -145,15 +141,6 @@ export class Plugin<T = any> {
   }
 
   /**
-   * 플러그인의 데코레이션 가져오기
-   */
-  getDecorations(state: CalendarState): DecorationSet {
-    return this.spec.decorations
-      ? this.spec.decorations(state, this)
-      : new DecorationSet();
-  }
-
-  /**
    * 쿼리 실행
    */
   query<T = unknown>(
@@ -256,20 +243,6 @@ export class PluginManager {
   }
 
   /**
-   * 모든 플러그인의 데코레이션 수집
-   */
-  getAllDecorations(state: CalendarState): DecorationSet {
-    let decorations = new DecorationSet();
-
-    for (const plugin of this.sortedPlugins) {
-      const pluginDecorations = plugin.getDecorations(state);
-      decorations = decorations.addAll(pluginDecorations.decorations);
-    }
-
-    return decorations;
-  }
-
-  /**
    * 트랜잭션 필터링
    */
   filterTransaction(transaction: Transaction, state: CalendarState): boolean {
@@ -331,7 +304,8 @@ export class PluginManager {
               eventData.date,
               eventData.event,
               state,
-              plugin
+              plugin,
+              eventData.calendar
             );
           }
           break;
@@ -530,10 +504,6 @@ export class PluginFactory {
     handlers: Partial<{
       handleTransaction: (transaction: Transaction, state: T) => T;
       handleDateClick: (date: Date, event: MouseEvent, state: T) => boolean;
-      createDecorations: (
-        calendarState: CalendarState,
-        state: T
-      ) => DecorationSet;
     }>
   ): Plugin<T> {
     return new Plugin({
@@ -560,14 +530,6 @@ export class PluginFactory {
           })(initialState),
         apply: (transaction, state) => state.apply(transaction),
       },
-      decorations: handlers.createDecorations
-        ? (calendarState, plugin) => {
-            const pluginState = plugin.getState(calendarState);
-            return pluginState
-              ? handlers.createDecorations!(calendarState, pluginState.value)
-              : new DecorationSet();
-          }
-        : undefined,
       props: {
         handleDateClick: handlers.handleDateClick
           ? (date, event, calendarState, plugin) => {
@@ -588,19 +550,6 @@ export class PluginFactory {
     return new Plugin({
       key,
       commands: () => commands,
-    });
-  }
-
-  /**
-   * 데코레이션 전용 플러그인 생성
-   */
-  static createDecorationPlugin(
-    key: string,
-    decorationFactory: (state: CalendarState) => DecorationSet
-  ): Plugin {
-    return new Plugin({
-      key,
-      decorations: decorationFactory,
     });
   }
 }

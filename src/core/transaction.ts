@@ -34,6 +34,9 @@ export class TransactionBuilder {
    * 메타데이터 추가
    */
   addMeta(key: string, value: any): TransactionBuilder {
+    if (!this.transaction.meta) {
+      this.transaction.meta = new Map();
+    }
     this.transaction.meta.set(key, value);
     return this;
   }
@@ -137,7 +140,7 @@ export class TransactionValidator {
    * 타임스탬프 검증
    */
   static validateTimestamp(transaction: Transaction): boolean {
-    const timestamp = transaction.meta.get('timestamp');
+    const timestamp = transaction.meta?.get('timestamp');
     if (typeof timestamp !== 'number' || timestamp <= 0) {
       throw new Error('Transaction must have valid timestamp in meta');
     }

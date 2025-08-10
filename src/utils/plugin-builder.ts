@@ -4,7 +4,6 @@
 
 import { CalendarState, Transaction } from '@/types';
 import { Plugin } from '@/core/plugin';
-import { DecorationSet } from '@/core/decoration';
 import { createCustomPlugin, PluginFactoryOptions } from './plugin-factory';
 
 /**
@@ -145,12 +144,13 @@ export class PluginBuilder<T = any> {
   }
 
   /**
-   * 데코레이션 팩토리 설정
+   * 데코레이션 팩토리 설정 (제거됨)
    */
-  withDecorations(
-    factory: (state: CalendarState, pluginState: T) => DecorationSet
-  ): PluginBuilder<T> {
-    this.options.decorationFactory = factory;
+  withDecorations(_factory: any): PluginBuilder<T> {
+    // Decoration system has been removed
+    console.warn(
+      'withDecorations is deprecated. The decoration system has been removed.'
+    );
     return this;
   }
 
@@ -415,77 +415,41 @@ export namespace PluginPresets {
 }
 
 /**
- * 자주 사용되는 데코레이션 빌더
+ * 자주 사용되는 데코레이션 빌더 (제거됨)
  */
 export namespace DecorationBuilders {
   export function highlightDates(
-    dates: Date[],
-    className: string = 'highlighted'
+    _dates: Date[],
+    _className: string = 'highlighted'
   ) {
-    return (_state: CalendarState, _pluginState: Record<string, unknown>) => {
-      const decorations = dates.map(date => ({
-        type: 'highlight' as const,
-        from: date,
-        spec: { class: className },
-      }));
-      return new DecorationSet(decorations);
-    };
+    console.warn(
+      'DecorationBuilders.highlightDates is deprecated. The decoration system has been removed.'
+    );
+    return () => [];
   }
 
   export function badgeDates(
-    dateValueMap: Map<Date, string>,
-    className: string = 'badge'
+    _dateValueMap: Map<Date, string>,
+    _className: string = 'badge'
   ) {
-    return (_state: CalendarState, _pluginState: Record<string, unknown>) => {
-      const decorations = Array.from(dateValueMap.entries()).map(
-        ([date, value]) => ({
-          type: 'badge' as const,
-          from: date,
-          spec: {
-            class: className,
-            'data-badge': value,
-          },
-        })
-      );
-      return new DecorationSet(decorations);
-    };
+    console.warn(
+      'DecorationBuilders.badgeDates is deprecated. The decoration system has been removed.'
+    );
+    return () => [];
   }
 
   export function conditionalHighlight(
-    condition: (
+    _condition: (
       date: Date,
       state: CalendarState,
       pluginState: Record<string, unknown>
     ) => boolean,
-    className: string = 'conditional-highlight'
+    _className: string = 'conditional-highlight'
   ) {
-    return (_state: CalendarState, _pluginState: Record<string, unknown>) => {
-      // 실제로는 현재 표시되는 날짜들을 가져와야 함
-      const decorations: Array<{
-        type: 'highlight';
-        from: Date;
-        spec: Record<string, unknown>;
-      }> = [];
-
-      // 예시: 현재 월의 모든 날짜 체크 (실제 구현에서는 달력에서 날짜 목록을 가져와야 함)
-      const currentDate = _state.currentDate ?? new Date();
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        if (condition(date, _state, _pluginState)) {
-          decorations.push({
-            type: 'highlight' as const,
-            from: date,
-            spec: { class: className },
-          });
-        }
-      }
-
-      return new DecorationSet(decorations);
-    };
+    console.warn(
+      'DecorationBuilders.conditionalHighlight is deprecated. The decoration system has been removed.'
+    );
+    return () => [];
   }
 }
 

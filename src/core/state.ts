@@ -184,7 +184,7 @@ export class StateUpdater {
       state.viewType
     );
 
-    const corePluginState = state.pluginStates.get('core') as CorePluginState;
+    // const corePluginState = state.pluginStates.get('core') as PluginState;
 
     const newState: CalendarState = {
       ...state,

@@ -5,7 +5,6 @@
 
 import { Plugin, PluginSpec } from '@/core/plugin';
 import { PluginState, Transaction } from '@/types';
-import { DecorationSet, DecorationFactory } from '@/core/decoration';
 import { transactions } from '@/core/transaction';
 
 export interface I18nOptions {
@@ -642,55 +641,6 @@ export function createI18nPlugin(options: I18nOptions = {}): Plugin<I18nState> {
           return true;
         },
     }),
-
-    decorations: (state, plugin) => {
-      const i18nState = plugin.getState(state);
-      if (!i18nState) return new DecorationSet();
-
-      const decorations: any[] = [];
-
-      // RTL 지원
-      if (i18nState.value.rtl) {
-        decorations.push(
-          DecorationFactory.widget(new Date(), () => {
-            const style = document.createElement('style');
-            style.textContent = `
-              .calendar-container {
-                direction: rtl;
-                text-align: right;
-              }
-              .calendar-header {
-                flex-direction: row-reverse;
-              }
-              .calendar-nav-prev {
-                order: 2;
-              }
-              .calendar-nav-next {
-                order: 1;
-              }
-            `;
-            return style;
-          })
-        );
-      }
-
-      // 숫자 시스템 지원
-      if (i18nState.value.numberSystem !== 'latn') {
-        decorations.push(
-          DecorationFactory.widget(new Date(), () => {
-            const style = document.createElement('style');
-            style.textContent = `
-              .calendar-date {
-                font-variant-numeric: ${i18nState.value.numberSystem};
-              }
-            `;
-            return style;
-          })
-        );
-      }
-
-      return new DecorationSet(decorations);
-    },
 
     queries: {
       getLocale: (state, plugin) => {

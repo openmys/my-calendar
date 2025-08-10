@@ -5,7 +5,6 @@
 
 import { Plugin, PluginSpec } from '@/core/plugin';
 import { PluginState, Transaction } from '@/types';
-import { DecorationSet } from '@/core/decoration';
 import { transactions } from '@/core/transaction';
 
 export interface SecurityOptions {
@@ -447,11 +446,6 @@ export function createSecurityPlugin(
         return true;
       },
     }),
-
-    decorations: (_state, _plugin) => {
-      // 보안 플러그인은 시각적 데코레이션을 제공하지 않음
-      return new DecorationSet();
-    },
 
     // 모든 트랜잭션을 사전에 필터링
     filterTransaction: (transaction, state, plugin) => {

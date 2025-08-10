@@ -22,12 +22,6 @@ export {
 } from './core/command';
 export { coreCommands } from './core/command';
 
-export {
-  DecorationSet,
-  DecorationFactory,
-  DecorationManager,
-} from './core/decoration';
-
 export { CalendarStateFactory, StateUpdater, StateQuery } from './core/state';
 
 export {
@@ -113,7 +107,6 @@ export {
   PluginBuilder,
   createPluginBuilder,
   PluginPresets,
-  DecorationBuilders,
   EventHandlerBuilders,
 } from './utils/plugin-builder';
 

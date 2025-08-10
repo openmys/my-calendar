@@ -1,4 +1,3 @@
-import { Transaction } from './../../dist/types/index.d';
 /**
  * 핵심 타입 정의
  * ProseMirror 스타일 헤드리스 캘린더 라이브러리의 기본 타입들
@@ -65,7 +64,7 @@ export interface ViewportState {
 
 // 전역 캘린더 상태
 export interface CalendarState {
-  // currentDate: Date;
+  currentDate: Date;
   viewType: ViewType;
   timeRange: TimeRange;
   days: CalendarDay[];
@@ -84,11 +83,11 @@ export interface CalendarState {
 //   meta: Map<string, unknown>;
 // }
 
-export type Transaction<T, P, M = Map<string, unknown>> = {
-  type: T;
-  payload: P;
-  meta: M;
-};
+export interface Transaction<T = any> {
+  type: string;
+  payload: T;
+  meta?: Map<string, unknown>;
+}
 
 // 구체적인 트랜잭션 타입들
 export interface DateTransaction extends Transaction<{ date: Date }> {
@@ -136,30 +135,6 @@ export interface CommandMap {
 export type UnknownRecord = Record<string, any>;
 export type AnyFunction = (...args: any[]) => any;
 export type EventHandler<T = Event> = (event: T) => boolean | void;
-
-// 데코레이션 시스템
-export type DecorationType =
-  | 'highlight'
-  | 'overlay'
-  | 'widget'
-  | 'badge'
-  | 'tooltip'
-  | 'disable'
-  | 'custom-decoration';
-
-export interface DecorationSpec {
-  class?: string;
-  style?: string;
-  attributes?: Record<string, string>;
-  widget?: () => HTMLElement;
-}
-
-export interface Decoration {
-  type: DecorationType;
-  from: Date;
-  to?: Date;
-  spec: DecorationSpec;
-}
 
 // 이벤트 처리 타입
 export interface DragData {
@@ -226,3 +201,6 @@ export class SecurityError extends CalendarError {
     super(message, 'SECURITY_ERROR');
   }
 }
+
+// 플러그인 쿼리 타입 추론 시스템
+export * from './plugin-query-inference';

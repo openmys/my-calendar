@@ -5,7 +5,6 @@
 
 import { Plugin, PluginSpec } from '@/core/plugin';
 import { PluginState, Transaction, CalendarState } from '@/types';
-import { DecorationSet, DecorationFactory } from '@/core/decoration';
 import { transactions } from '@/core/transaction';
 
 export interface AccessibilityOptions {
@@ -211,89 +210,6 @@ export function createAccessibilityPlugin(
         },
     }),
 
-    decorations: (state, plugin) => {
-      const a11yState = plugin.getState(state);
-      if (!a11yState) return new DecorationSet();
-
-      const decorations: any[] = [];
-
-      // 캘린더 컨테이너에 ARIA 속성 추가
-      decorations.push(
-        DecorationFactory.widget(new Date(), () => {
-          const container = document.createElement('div');
-          container.setAttribute('role', 'grid');
-          container.setAttribute('aria-label', '캘린더');
-          container.setAttribute('aria-roledescription', '날짜 선택기');
-
-          if (a11yState.value.focusedDate) {
-            const focusedId = getDateCellId(a11yState.value.focusedDate);
-            container.setAttribute('aria-activedescendant', focusedId);
-          }
-
-          if (
-            a11yState.value.options.ariaLive &&
-            a11yState.value.options.ariaLive !== 'off'
-          ) {
-            container.setAttribute(
-              'aria-live',
-              a11yState.value.options.ariaLive
-            );
-          }
-
-          return container;
-        })
-      );
-
-      // 각 날짜 셀에 ARIA 속성 추가
-      for (const day of state.days) {
-        const cellId = getDateCellId(day.date);
-        const isFocused =
-          a11yState.value.focusedDate?.getTime() === day.date.getTime();
-        const isSelected = isDateSelected(day.date, state);
-
-        decorations.push(
-          DecorationFactory.widget(day.date, () => {
-            const cell = document.createElement('td');
-            cell.id = cellId;
-            cell.setAttribute('role', 'gridcell');
-            cell.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-            cell.setAttribute('tabindex', isFocused ? '0' : '-1');
-
-            // 접근 가능한 레이블 생성
-            const ariaLabel = createDateLabel(day.date, state);
-            cell.setAttribute('aria-label', ariaLabel);
-
-            // 설명 추가 (있는 경우)
-            const description = a11yState.value.describedBy.get(cellId);
-            if (description) {
-              cell.setAttribute('aria-describedby', `${cellId}-desc`);
-            }
-
-            return cell;
-          })
-        );
-      }
-
-      // 스크린 리더 알림 영역
-      if (a11yState.value.announcement) {
-        decorations.push(
-          DecorationFactory.widget(new Date(), () => {
-            const announcement = document.createElement('div');
-            announcement.className = 'sr-only';
-            announcement.setAttribute(
-              'aria-live',
-              a11yState.value.announcementType ?? 'polite'
-            );
-            announcement.setAttribute('aria-atomic', 'true');
-            announcement.textContent = a11yState.value.announcement;
-            return announcement;
-          })
-        );
-      }
-
-      return new DecorationSet(decorations);
-    },
-
     props: {
       handleKeyDown: (event, state, plugin) => {
         const a11yState = plugin.getState(state);
@@ -370,14 +286,14 @@ export function createAccessibilityPlugin(
   };
 
   // 헬퍼 함수들을 spec 내부에 정의
+  // 데코레이션 시스템이 제거되어 사용되지 않는 함수들
+  /*
   const getDateCellId = (date: Date): string => {
     return `calendar-cell-${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
   };
 
   const isDateSelected = (_date: Date, _state: CalendarState): boolean => {
-    // 다른 플러그인의 선택 상태 확인
-    // 이는 실제 구현에서는 Range Plugin의 쿼리를 사용해야 함
-    return false; // 임시
+    return false;
   };
 
   const createDateLabel = (date: Date, _state: CalendarState): string => {
@@ -387,23 +303,9 @@ export function createAccessibilityPlugin(
       month: 'long',
       day: 'numeric',
     });
-
-    let label = `${dayName}, ${dateStr}`;
-
-    // 오늘 표시
-    const today = new Date();
-    if (date.toDateString() === today.toDateString()) {
-      label += ', 오늘';
-    }
-
-    // 이벤트 개수 (Event Plugin이 있는 경우)
-    // const events = getEventsForDate(date, state);
-    // if (events.length > 0) {
-    //   label += `, ${events.length}개의 일정`;
-    // }
-
-    return label;
+    return `${dayName}, ${dateStr}`;
   };
+  */
 
   const moveFocus = (
     currentDate: Date,

@@ -365,21 +365,17 @@ describe('PluginHelpers', () => {
   });
 
   describe('DecorationHelpers', () => {
-    it('should create highlight decorations', () => {
+    it('should handle removed decoration system for highlights', () => {
       const date = new Date('2024-01-15');
       const decoration = PluginHelpers.DecorationHelpers.createHighlight(
         date,
         'custom-highlight'
       );
 
-      expect(decoration).toEqual({
-        type: 'highlight',
-        from: date,
-        spec: { class: 'custom-highlight' },
-      });
+      expect(decoration).toBeNull();
     });
 
-    it('should create badge decorations', () => {
+    it('should handle removed decoration system for badges', () => {
       const date = new Date('2024-01-15');
       const decoration = PluginHelpers.DecorationHelpers.createBadge(
         date,
@@ -387,31 +383,17 @@ describe('PluginHelpers', () => {
         'custom-badge'
       );
 
-      expect(decoration).toEqual({
-        type: 'badge',
-        from: date,
-        spec: {
-          class: 'custom-badge',
-          'data-badge': 'New',
-        },
-      });
+      expect(decoration).toBeNull();
     });
 
-    it('should create tooltip decorations', () => {
+    it('should handle removed decoration system for tooltips', () => {
       const date = new Date('2024-01-15');
       const decoration = PluginHelpers.DecorationHelpers.createTooltip(
         date,
         'Tooltip text'
       );
 
-      expect(decoration).toEqual({
-        type: 'tooltip',
-        from: date,
-        spec: {
-          'data-tooltip': 'Tooltip text',
-          title: 'Tooltip text',
-        },
-      });
+      expect(decoration).toBeNull();
     });
   });
 });

@@ -4,8 +4,7 @@
  */
 
 import { Plugin, PluginSpec } from '@/core/plugin';
-import { PluginState, Transaction } from '@/types';
-import { DecorationSet, DecorationFactory } from '@/core/decoration';
+import { PluginState, Transaction, CalendarState } from '@/types';
 import { transactions } from '@/core/transaction';
 
 export interface RangeOptions {
@@ -27,6 +26,17 @@ export interface RangeState {
   selectedDates: Date[]; // 다중 선택 모드에서 선택된 날짜들
   options: RangeOptions;
 }
+
+/**
+ * Range Plugin의 쿼리 시그니처 타입 정의
+ */
+export type RangeQueries = {
+  getSelectedRange: () => { start: Date; end: Date } | null;
+  getSelectedDates: () => Date[];
+  isDateSelected: (date: Date) => boolean;
+  getSelectionMode: () => 'single' | 'range' | 'multiple';
+  isSelecting: () => boolean;
+};
 
 /**
  * Range Plugin State 클래스
@@ -177,11 +187,41 @@ class RangePluginState extends PluginState<RangeState> {
 }
 
 /**
+ * Range Plugin의 정확한 타입 정의
+ */
+export type RangePlugin = Plugin<RangeState> & {
+  spec: {
+    key: 'range';
+    queries: {
+      getSelectedRange: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ) => { start: Date; end: Date } | null;
+      getSelectedDates: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ) => Date[];
+      isDateSelected: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>,
+        date: Date
+      ) => boolean;
+      getSelectionMode: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ) => 'single' | 'range' | 'multiple';
+      isSelecting: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ) => boolean;
+    };
+  };
+};
+
+/**
  * Range Selection Plugin 생성 함수
  */
-export function createRangePlugin(
-  options: RangeOptions = {}
-): Plugin<RangeState> {
+export function createRangePlugin(options: RangeOptions = {}) {
   const defaultOptions: RangeOptions = {
     maxRange: undefined,
     minRange: 1,
@@ -193,7 +233,7 @@ export function createRangePlugin(
   const finalOptions = { ...defaultOptions, ...options };
 
   const spec: PluginSpec<RangeState> = {
-    key: 'range',
+    key: 'range' as const,
 
     state: {
       init: () =>
@@ -205,40 +245,65 @@ export function createRangePlugin(
           selectedDates: [],
           options: finalOptions,
         }),
-      apply: (transaction, state) => state.apply(transaction),
+      apply: (transaction: Transaction, state: PluginState<RangeState>) =>
+        state.apply(transaction),
     },
 
-    commands: _plugin => ({
-      startRangeSelection: (date: Date) => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_START_SELECTION', { date }));
-        }
-        return true;
-      },
+    commands: (_plugin: Plugin<RangeState>) => ({
+      startRangeSelection:
+        (date: Date) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('RANGE_START_SELECTION', { date }));
+          }
+          return true;
+        },
 
-      updateRangeSelection: (date: Date) => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_UPDATE_SELECTION', { date }));
-        }
-        return true;
-      },
+      updateRangeSelection:
+        (date: Date) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('RANGE_UPDATE_SELECTION', { date }));
+          }
+          return true;
+        },
 
-      endRangeSelection: () => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_END_SELECTION', {}));
-        }
-        return true;
-      },
+      endRangeSelection:
+        () =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('RANGE_END_SELECTION', {}));
+          }
+          return true;
+        },
 
-      selectSingleDate: (date: Date) => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_SELECT_SINGLE', { date }));
-        }
-        return true;
-      },
+      selectSingleDate:
+        (date: Date) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('RANGE_SELECT_SINGLE', { date }));
+          }
+          return true;
+        },
 
       selectRange:
-        (start: Date, end: Date) => (_state: any, dispatch?: any) => {
+        (start: Date, end: Date) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
           if (dispatch) {
             dispatch(
               transactions.custom('RANGE_START_SELECTION', { date: start })
@@ -251,23 +316,36 @@ export function createRangePlugin(
           return true;
         },
 
-      clearRangeSelection: () => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_CLEAR_SELECTION', {}));
-        }
-        return true;
-      },
+      clearRangeSelection:
+        () =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('RANGE_CLEAR_SELECTION', {}));
+          }
+          return true;
+        },
 
-      hoverDate: (date: Date | null) => (_state: any, dispatch?: any) => {
-        if (dispatch) {
-          dispatch(transactions.custom('RANGE_HOVER_DATE', { date }));
-        }
-        return true;
-      },
+      hoverDate:
+        (date: Date | null) =>
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
+          if (dispatch) {
+            dispatch(transactions.custom('RANGE_HOVER_DATE', { date }));
+          }
+          return true;
+        },
 
       setRangeOptions:
         (newOptions: Partial<RangeOptions>) =>
-        (_state: any, dispatch?: any) => {
+        (
+          _state: CalendarState,
+          dispatch?: (transaction: Transaction) => void
+        ) => {
           if (dispatch) {
             dispatch(
               transactions.custom('RANGE_SET_OPTIONS', { options: newOptions })
@@ -277,124 +355,58 @@ export function createRangePlugin(
         },
     }),
 
-    decorations: (state, plugin) => {
-      const rangeState = plugin.getState(state);
-      if (!rangeState) return new DecorationSet();
-
-      const decorations: any[] = [];
-
-      // 선택된 범위 데코레이션
-      if (rangeState.value.selectedRange) {
-        const { start, end } = rangeState.value.selectedRange;
-
-        if (start.getTime() === end.getTime()) {
-          // 단일 날짜 선택
-          decorations.push(
-            DecorationFactory.highlight(start, 'calendar-selected-date')
-          );
-        } else {
-          // 범위 선택
-          const current = new Date(start);
-          while (current <= end) {
-            const isStart = current.getTime() === start.getTime();
-            const isEnd = current.getTime() === end.getTime();
-
-            let className = 'calendar-range-selected';
-            if (isStart) className += ' range-start';
-            if (isEnd) className += ' range-end';
-            if (!isStart && !isEnd) className += ' range-middle';
-
-            decorations.push(
-              DecorationFactory.highlight(new Date(current), className)
-            );
-
-            current.setDate(current.getDate() + 1);
-          }
-        }
-      }
-
-      // 다중 선택 데코레이션
-      if (rangeState.value.options.selectionMode === 'multiple') {
-        for (const date of rangeState.value.selectedDates) {
-          decorations.push(
-            DecorationFactory.highlight(date, 'calendar-multi-selected')
-          );
-        }
-      }
-
-      // 임시 범위 미리보기 (선택 중일 때)
-      if (
-        rangeState.value.isSelecting &&
-        rangeState.value.selectionStart &&
-        rangeState.value.hoveredDate
-      ) {
-        const start = rangeState.value.selectionStart;
-        const end = rangeState.value.hoveredDate;
-        const actualStart = start <= end ? start : end;
-        const actualEnd = start <= end ? end : start;
-
-        const current = new Date(actualStart);
-        while (current <= actualEnd) {
-          decorations.push(
-            DecorationFactory.highlight(
-              new Date(current),
-              'calendar-range-preview'
-            )
-          );
-          current.setDate(current.getDate() + 1);
-        }
-      }
-
-      // 호버 데코레이션
-      if (rangeState.value.hoveredDate && !rangeState.value.isSelecting) {
-        decorations.push(
-          DecorationFactory.highlight(
-            rangeState.value.hoveredDate,
-            'calendar-hover'
-          )
-        );
-      }
-
-      return new DecorationSet(decorations);
-    },
-
     props: {
-      handleDateClick: (date, event, state, plugin) => {
+      handleDateClick: (
+        date: Date,
+        event: MouseEvent,
+        state: CalendarState,
+        plugin: Plugin<RangeState>,
+        calendar: any
+      ) => {
         const rangeState = plugin.getState(state);
-        if (!rangeState) return false;
+        if (!rangeState) {
+          return false;
+        }
 
         const { selectionMode } = rangeState.value.options;
 
-        if (event.shiftKey && selectionMode === 'range') {
-          // Shift 클릭으로 범위 선택
-          if (rangeState.value.selectedRange) {
-            // 기존 선택의 시작점을 사용하여 새 범위 생성
-            const existingStart = rangeState.value.selectedRange.start;
-
-            // Shift + 클릭으로 범위 선택: 로그로 상태 확인
-            // eslint-disable-next-line no-console
-            console.log('범위 선택:', { existingStart, date });
-            return true; // 처리됨을 표시
-          }
-        } else if (event.ctrlKey || event.metaKey) {
-          // Ctrl/Cmd 클릭으로 다중 선택 (다중 모드에서만)
-          if (selectionMode === 'multiple') {
-            return true; // selectSingleDate 커맨드로 처리
-          }
-        } else {
-          // 일반 클릭
-          if (selectionMode === 'range') {
-            if (!rangeState.value.isSelecting) {
-              // 범위 선택 시작
-              return true; // startRangeSelection 커맨드로 처리
+        if (selectionMode === 'range') {
+          // 범위 선택 모드
+          if (!rangeState.value.isSelecting) {
+            // 범위가 이미 완성된 상태인지 확인
+            if (
+              rangeState.value.selectedRange?.start &&
+              rangeState.value.selectedRange?.end
+            ) {
+              // 범위가 완성된 상태에서 새 날짜 클릭 시 초기화하고 새로 시작
+              calendar?.execCommand('clearRangeSelection');
+              calendar?.execCommand('startRangeSelection', date);
             } else {
-              // 범위 선택 완료
-              return true; // endRangeSelection 커맨드로 처리
+              // 범위 선택 시작
+              calendar?.execCommand('startRangeSelection', date);
             }
+            return true;
           } else {
-            // 단일 선택
-            return true; // selectSingleDate 커맨드로 처리
+            // 범위 선택 완료
+            calendar?.execCommand('updateRangeSelection', date);
+            calendar?.execCommand('endRangeSelection');
+            return true;
           }
+        } else if (selectionMode === 'multiple') {
+          // 다중 선택 모드 - Ctrl/Cmd 키로 여러 개 선택
+          if (event?.ctrlKey || event?.metaKey) {
+            calendar?.execCommand('selectSingleDate', date);
+            return true;
+          } else {
+            // 일반 클릭 시 기존 선택 지우고 새로 선택
+            calendar?.execCommand('clearRangeSelection');
+            calendar?.execCommand('selectSingleDate', date);
+            return true;
+          }
+        } else if (selectionMode === 'single') {
+          // 단일 선택 모드
+          calendar?.execCommand('selectSingleDate', date);
+          return true;
         }
 
         return false;
@@ -402,12 +414,18 @@ export function createRangePlugin(
     },
 
     queries: {
-      getSelectedRange: (state, plugin) => {
+      getSelectedRange: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ): { start: Date; end: Date } | null => {
         const rangeState = plugin.getState(state);
         return rangeState?.value.selectedRange ?? null;
       },
 
-      getSelectedDates: (state, plugin) => {
+      getSelectedDates: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ): Date[] => {
         const rangeState = plugin.getState(state);
         if (!rangeState) return [];
 
@@ -427,7 +445,11 @@ export function createRangePlugin(
         return rangeState.value.selectedDates;
       },
 
-      isDateSelected: (state, plugin, date: Date) => {
+      isDateSelected: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>,
+        date: Date
+      ): boolean => {
         const rangeState = plugin.getState(state);
         if (!rangeState) return false;
 
@@ -437,21 +459,27 @@ export function createRangePlugin(
         }
 
         return rangeState.value.selectedDates.some(
-          d => d.getTime() === date.getTime()
+          (d: Date) => d.getTime() === date.getTime()
         );
       },
 
-      getSelectionMode: (state, plugin) => {
+      getSelectionMode: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ): 'single' | 'range' | 'multiple' => {
         const rangeState = plugin.getState(state);
         return rangeState?.value.options.selectionMode ?? 'range';
       },
 
-      isSelecting: (state, plugin) => {
+      isSelecting: (
+        state: CalendarState,
+        plugin: Plugin<RangeState>
+      ): boolean => {
         const rangeState = plugin.getState(state);
         return rangeState?.value.isSelecting ?? false;
       },
-    },
-  };
+    } as const,
+  } as const;
 
-  return new Plugin(spec);
+  return new Plugin(spec) as RangePlugin;
 }

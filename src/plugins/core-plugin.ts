@@ -1,26 +1,28 @@
-import { PluginState, Transaction } from '@/types';
+import { PluginState } from '@/types';
 
 export interface CoreState {
   currentDate: Date;
 }
 
-type CoreTransaction =
-  | Transaction<'SELECT_DATE', { date: Date }>
-  | Transaction<'CHANGE_MONTH', { direction: 'next' | 'previous' }>;
+// type CoreTransaction =
+//   | Transaction<{ date: Date }>
+//   | Transaction<{ direction: 'next' | 'previous' }>;
 
 export class CorePluginState extends PluginState<CoreState> {
-  apply(transaction: CoreTransaction): CorePluginState {
+  apply(transaction: any): CorePluginState {
     const newValue = { ...this.value };
 
     switch (transaction.type) {
       case 'SELECT_DATE': {
-        newValue.currentDate = new Date(transaction.payload.date);
+        if (transaction.payload?.date) {
+          newValue.currentDate = new Date(transaction.payload.date);
+        }
         break;
       }
       case 'CHANGE_MONTH': {
-        if (transaction.payload.direction === 'next') {
+        if (transaction.payload?.direction === 'next') {
           newValue.currentDate.setMonth(newValue.currentDate.getMonth() + 1);
-        } else {
+        } else if (transaction.payload?.direction === 'previous') {
           newValue.currentDate.setMonth(newValue.currentDate.getMonth() - 1);
         }
         break;
