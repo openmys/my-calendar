@@ -1,6 +1,6 @@
 {
   "name": "@openmys/my-calendar",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.1",
   "description": "ProseMirror 스타일 헤드리스 캘린더 라이브러리",
   "homepage": "https://github.com/openmys/my-calendar",
   "repository": {
