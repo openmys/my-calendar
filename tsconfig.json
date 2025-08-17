@@ -23,9 +23,16 @@
     /* Paths */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@/core/*": ["src/core/*"],
+      "@/types/*": ["src/types/*"],
+      "@/features/*": ["src/features/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/react/*": ["src/react/*"],
+      "@/stories/*": ["src/stories/*"]
     }
   },
   "include": ["src/**/*"],
+  "exclude": ["src/**/*.stories.tsx", "src/**/*.stories.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
