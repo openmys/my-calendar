@@ -2,10 +2,9 @@
  * 기본 캘린더 스토리북
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
-// @ts-ignore
 import { DateSelection, RangeSelection, useReactCalendar } from '@/react';
 import '@/styles/calendar.css';
+import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 
 // 1. 기본 캘린더 컴포넌트

@@ -14,6 +14,7 @@ export * from '@/core/month';
 // Features
 export * from '@/features/DateSelection';
 export * from '@/features/RangeSelection';
+export * from '@/features/Navigation';
 
 // Utils
 export * from '@/utils';
