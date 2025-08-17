@@ -4,9 +4,9 @@
 
 import type { Meta, StoryObj } from '@storybook/react';
 // @ts-ignore
-import React from 'react';
-import { useReactCalendar, DateSelection, RangeSelection } from '@/react';
+import { DateSelection, RangeSelection, useReactCalendar } from '@/react';
 import '@/styles/calendar.css';
+import React from 'react';
 
 // 1. 기본 캘린더 컴포넌트
 const BasicCalendarComponent = () => {
@@ -20,38 +20,15 @@ const BasicCalendarComponent = () => {
   return (
     <div className='calendar'>
       <div className='calendar-header'>
-        <button
-          onClick={() =>
-            calendar.setOptions(old => ({
-              ...old,
-              currentDate: new Date(
-                old.currentDate.getFullYear(),
-                old.currentDate.getMonth() - 1
-              ),
-            }))
-          }
-        >
-          Previous
-        </button>
+        <button onClick={() => calendar.goToPreviousMonth()}>Previous</button>
+        <button onClick={() => calendar.goToToday()}>Today</button>
         <h2>
           {calendar.getState().currentDate.toLocaleDateString('ko-KR', {
             year: 'numeric',
             month: 'long',
           })}
         </h2>
-        <button
-          onClick={() =>
-            calendar.setOptions(old => ({
-              ...old,
-              currentDate: new Date(
-                old.currentDate.getFullYear(),
-                old.currentDate.getMonth() + 1
-              ),
-            }))
-          }
-        >
-          Next
-        </button>
+        <button onClick={() => calendar.goToNextMonth()}>Next</button>
       </div>
 
       <div className='calendar-grid'>

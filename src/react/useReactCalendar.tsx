@@ -37,10 +37,14 @@ export function useReactCalendar<TData = any>(options: CalendarOptions<TData>) {
     current: createCalendar<TData>(resolvedOptions),
   }));
 
-  // 상태 관리
-  const [state, setState] = React.useState(
-    () => calendarRef.current.initialState
-  );
+  // 상태 관리 - 옵션 값들을 상태 초기값으로 설정
+  const [state, setState] = React.useState(() => ({
+    ...calendarRef.current.initialState,
+    currentDate: resolvedOptions.currentDate,
+    weekStartsOn: resolvedOptions.weekStartsOn,
+    locale: resolvedOptions.locale,
+    timezone: resolvedOptions.timezone,
+  }));
 
   // 옵션과 상태 업데이트
   calendarRef.current.setOptions(prev => ({

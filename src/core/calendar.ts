@@ -15,13 +15,14 @@ import {
   Updater,
 } from '@/types/calendar';
 
-import { functionalUpdate, getMemoOptions, memo } from '@/utils';
 import { createDay } from '@/core/day';
 import { createMonth } from '@/core/month';
 import { createWeek } from '@/core/week';
+import { functionalUpdate, getMemoOptions, memo } from '@/utils';
+import { Navigation } from '@/features/Navigation';
 
-// Built-in features (나중에 추가될 예정)
-const builtInFeatures: CalendarFeature[] = [];
+// Built-in features
+const builtInFeatures: CalendarFeature[] = [Navigation];
 
 export function createCalendar<TData = any>(
   options: CalendarOptions<TData>
@@ -55,6 +56,9 @@ export function createCalendar<TData = any>(
   const coreInitialState: CoreCalendarState = {
     currentDate: new Date(),
     viewType: 'month',
+    weekStartsOn: 0,
+    locale: 'en-US',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   };
 
   let initialState = {
@@ -74,7 +78,16 @@ export function createCalendar<TData = any>(
     },
     initialState,
 
-    getState: () => calendar.options.state as CalendarState,
+    getState: () => {
+      return {
+        ...calendar.initialState,
+        currentDate: calendar.options.currentDate,
+        weekStartsOn: calendar.options.weekStartsOn,
+        locale: calendar.options.locale,
+        timezone: calendar.options.timezone,
+        ...calendar.options.state,
+      } as CalendarState;
+    },
     setState: (updater: Updater<CalendarState>) => {
       calendar.options.onStateChange?.(updater);
     },
@@ -85,6 +98,7 @@ export function createCalendar<TData = any>(
 
     setOptions: (updater: Updater<CalendarOptionsResolved<TData>>) => {
       const newOptions = functionalUpdate(updater, calendar.options);
+      console.log('newOptions', newOptions);
       calendar.options = mergeOptions(newOptions) as RequiredKeys<
         CalendarOptionsResolved<TData>,
         'state'

@@ -63,6 +63,9 @@ export interface EventMeta {}
 export interface CoreCalendarState {
   currentDate: Date;
   viewType: 'month' | 'week' | 'day' | 'year';
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  locale: string;
+  timezone: string;
 }
 
 export interface CoreOptions<TData = any> {
@@ -72,7 +75,7 @@ export interface CoreOptions<TData = any> {
   features?: CalendarFeature<TData>[];
 
   /**
-   * 현재 날짜
+   * 현재 날짜 (초기값)
    */
   currentDate?: Date;
 
